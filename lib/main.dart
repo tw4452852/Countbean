@@ -136,6 +136,23 @@ class Home extends HookWidget {
             : Text(path.basenameWithoutExtension(currentFile.state.path)),
       ),
       body: currentFile.state == null ? Startup() : Parsing(),
+      floatingActionButton: currentFile.state == null
+          ? null
+          : FloatingActionButton(
+              onPressed: () async {
+                final List result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddWidget(),
+                  ),
+                );
+                if (result != null && result.isNotEmpty) {
+                  result.forEach(
+                      (e) => context.read(currentItemsProvider).add(Item(e)));
+                }
+              },
+              child: const Icon(Icons.create),
+            ),
     );
   }
 }

@@ -11,12 +11,6 @@ class Statistics {
   Set<String> eventTypes = {};
   Set<String> eventValues = {};
 
-  static final Statistics _s = Statistics._internal();
-
-  Statistics._internal();
-
-  factory Statistics() => _s;
-
   reset() {
     _transactions.clear();
     _pads.clear();

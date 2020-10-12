@@ -1,7 +1,8 @@
+import 'package:Countbean/providers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import './statistics.dart';
 import './add.dart';
 import './parser/model.dart';
 
@@ -29,8 +30,9 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final currencies = Statistics().currencies.toList();
-    final accounts = Statistics().accounts.toList();
+    final s = context.read(currentStatisticsProvider);
+    final currencies = s.currencies.toList();
+    final accounts = s.accounts.toList();
     return form(
       onSave: (_) {
         widget.onSave([

@@ -1,6 +1,7 @@
+import 'package:Countbean/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import './statistics.dart';
 import './parser/model.dart';
 import './item.dart';
 
@@ -61,7 +62,7 @@ class SearchBarViewDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final statistics = Statistics();
+    final statistics = context.read(currentStatisticsProvider);
     final Set<String> allSuggestions = {
       "DateFrom:",
       "DateTo:",

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Countbean/statistics.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -65,4 +66,9 @@ final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
     }
     return true;
   })?.toList();
+});
+
+final currentStatisticsProvider = Provider<Statistics>((ref) {
+  final items = ref.watch(parsingProvider);
+  return Statistics()..addItems(items.data.value);
 });

@@ -83,6 +83,7 @@ class Items extends StateNotifier<List<Item>> {
       ...state.sublist(i),
     ];
     _updateFile(isAppend: isAppend, appendItems: isAppend ? [item] : null);
+    read(currentStatisticsProvider).addItems([item]);
   }
 
   del(Item item) {
@@ -93,6 +94,7 @@ class Items extends StateNotifier<List<Item>> {
         ...state.sublist(i + 1),
       ];
       _updateFile();
+      read(currentStatisticsProvider).delItems([item]);
     }
   }
 }

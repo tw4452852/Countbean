@@ -1,6 +1,7 @@
+import 'package:Countbean/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chips_input/flutter_chips_input.dart';
-import './statistics.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import './add.dart';
 import './parser/model.dart';
@@ -27,8 +28,9 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final currencies = Statistics().currencies.toList();
-    final accounts = Statistics().accounts.toList();
+    final s = context.read(currentStatisticsProvider);
+    final currencies = s.currencies.toList();
+    final accounts = s.accounts.toList();
     return form(
       onSave: (_) {
         widget.onSave([

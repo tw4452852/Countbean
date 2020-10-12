@@ -1,10 +1,12 @@
+import 'package:Countbean/providers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chips_input/flutter_chips_input.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import './parser/model.dart';
-import './statistics.dart';
 import './add.dart';
+import './providers.dart';
 
 class TransactionAddWidget extends StatefulWidget {
   final Function(List) onSave;
@@ -35,11 +37,12 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final payees = Statistics().payees.toList();
-    final accounts = Statistics().accounts.toList();
-    final tags = Statistics().tags;
-    final links = Statistics().links;
-    final currencies = Statistics().currencies.toList();
+    final s = context.read(currentStatisticsProvider);
+    final payees = s.payees.toList();
+    final accounts = s.accounts.toList();
+    final tags = s.tags;
+    final links = s.links;
+    final currencies = s.currencies.toList();
 
     return SingleChildScrollView(
       child: form(
