@@ -21,7 +21,8 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  flutter_riverpod: ^0.11.0
+  hooks_riverpod: ^0.11.0
+  flutter_hooks: ^0.14.0
   package_info: ^0.4.3
   visibility_detector: ^0.1.5
   expandable: ^4.1.4

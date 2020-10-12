@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import './parser/model.dart';
 
@@ -50,4 +53,44 @@ class Item {
 
   @override
   String toString() => content.toString();
+}
+
+class Items extends StateNotifier<List<Item>> {
+  final File file;
+  Items(this.file, [List<Item> initItems]) : super(initItems ?? []);
+
+  _updateFile({bool isAppend = false, Iterable appendItems}) {
+    if (file == null) {
+      return;
+    }
+
+    final entries = isAppend ? appendItems : state;
+    final sink =
+        file.openWrite(mode: isAppend ? FileMode.append : FileMode.write);
+    entries.forEach((e) => sink.writeln(e));
+    sink.flush().then((_) => sink.close());
+  }
+
+  add(Item item) {
+    final i =
+        state.lastIndexWhere((element) => !element.date.isAfter(item.date)) + 1;
+    final isAppend = i == state.length;
+    state = [
+      ...state.sublist(0, i),
+      item,
+      ...state.sublist(i),
+    ];
+    _updateFile(isAppend: isAppend, appendItems: isAppend ? [item] : null);
+  }
+
+  del(Item item) {
+    final i = state.indexOf(item);
+    if (i != -1) {
+      state = [
+        ...state.sublist(0, i),
+        ...state.sublist(i + 1),
+      ];
+      _updateFile();
+    }
+  }
 }

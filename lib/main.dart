@@ -8,7 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:expandable/expandable.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:package_info/package_info.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 import './parser/parser.dart';
 import './parser/widget.dart';
@@ -16,72 +17,7 @@ import './statistics.dart';
 import './add.dart';
 import './item.dart';
 import './search.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-class Sheets extends StateNotifier<List<String>> {
-  Sheets([List<String> initiSheets]) : super(initiSheets ?? []);
-
-  bool add(String path) {
-    if (state.contains(path)) {
-      return false;
-    }
-
-    File(path).setLastAccessed(DateTime.now());
-    state = [
-      path,
-      ...state,
-    ];
-    return true;
-  }
-
-  bool del(String path) {
-    final i = state.indexOf(path);
-    if (i == -1) {
-      return false;
-    }
-
-    File(path).delete();
-    state = [
-      ...state.sublist(0, i),
-      ...state.sublist(i + 1),
-    ];
-    return true;
-  }
-
-  bool rename(String o, String n) {
-    final i = state.indexOf(o);
-    if (i == -1) {
-      return false;
-    }
-
-    File(o).rename(n).then((f) => f.setLastAccessed(DateTime.now()));
-    state = [
-      n,
-      ...state.sublist(0, i),
-      ...state.sublist(i + 1),
-    ];
-    return true;
-  }
-
-  bool get isEmpty => state == null || state.isEmpty;
-  String get first => isEmpty ? null : state.first;
-  void reset(List<String> s) => state = s;
-}
-
-Future<List<String>> loadSheets() async {
-  final directory = await getApplicationDocumentsDirectory();
-
-  List<File> l = [];
-  directory.listSync().forEach((e) {
-    if (e is File && path.extension(e.path) == '.cb') l.add(e);
-  });
-  l.sort((a, b) => b.lastAccessedSync().compareTo(a.lastAccessedSync()));
-  return l.map((e) => e.path).toList();
-}
-
-final sheetsProvider = StateNotifierProvider<Sheets>((ref) => Sheets());
-
-final currentFileProvider = StateProvider<File>((ref) => null);
+import './providers.dart';
 
 void main() async {
   runApp(
@@ -101,38 +37,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends HookWidget {
   @override
   Widget build(context) {
-    return FutureBuilder(
-        future: loadSheets(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
-          if (!snapshot.hasData) {
-            return Center(
+    final loading = useProvider(loadingProvider);
+    return loading.when(
+        data: (_) => Home(),
+        loading: () => Center(
               child: SizedBox(
                 child: CircularProgressIndicator(),
                 width: 60,
                 height: 60,
               ),
-            );
-          }
-
-          final l = snapshot.data;
-          if (l.isNotEmpty) {
-            context.read(sheetsProvider).reset(l);
-            context.read(currentFileProvider).state = File(l.first);
-          }
-          return Home();
-        });
+            ),
+        error: (err, stack) => Center(child: Text('Error: $err')));
   }
 }
 
-Future<File> create(context) async {
+Future<File> createFile(context) async {
   final directory = await getApplicationDocumentsDirectory();
   final name = await showDialog<String>(
       context: context,
@@ -161,45 +83,70 @@ Future<File> create(context) async {
         );
       });
   if (name != null && name.isNotEmpty) {
-    final f = File('${directory.path}/$name.cb');
-    await f.create();
-    return f;
+    return await File('${directory.path}/$name.cb').create();
   }
-
   return null;
 }
 
-class Startup extends StatelessWidget {
+class Startup extends HookWidget {
   @override
   Widget build(context) {
     return Center(
-      child: FlatButton(
-        child: const Text('Create a new sheet'),
-        onPressed: () async {
-          final f = await create(context);
-          if (f != null) {
-            context.read(currentFileProvider).state = f;
-          }
-        },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          RaisedButton(
+            child: const Text('Create a new sheet'),
+            onPressed: () async {
+              final f = await createFile(context);
+
+              if (f != null) {
+                context.read(currentFileProvider).state = f;
+                context.read(sheetsProvider).add(f.path);
+              }
+            },
+          ),
+          RaisedButton(
+            child: const Text('Import from file'),
+            onPressed: () async {
+              final f = await FilePicker.getFile();
+              final d = await getApplicationDocumentsDirectory();
+              if (f != null) {
+                final p = path.join(
+                    d.path, '${path.basenameWithoutExtension(f.path)}.cb');
+                context.read(currentFileProvider).state = await f.copy(p);
+                context.read(sheetsProvider).add(p);
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-class Home extends StatelessWidget {
+class Home extends HookWidget {
   @override
   Widget build(context) {
+    final currentFile = useProvider(currentFileProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Consumer(
-          builder: (context, watch, _) {
-            final currentFile = watch(currentFileProvider);
-            return currentFile.state == null
-                ? const Text('Home')
-                : Text(path.basenameWithoutExtension(currentFile.state.path));
-          },
-        ),
+        title: currentFile.state == null
+            ? const Text('Home')
+            : Text(path.basenameWithoutExtension(currentFile.state.path)),
       ),
+      body: currentFile.state == null ? Startup() : Items(currentFile.state),
     );
+  }
+}
+
+class Items extends HookWidget {
+  final File file;
+
+  Items(this.file);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
