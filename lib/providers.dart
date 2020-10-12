@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 
 import './sheets.dart';
 import './item.dart';
+import './parser/parser.dart';
+import './search.dart';
 
 Future<List<String>> loadSheets() async {
   final directory = await getApplicationDocumentsDirectory();
@@ -27,17 +29,40 @@ final sheetsProvider = StateNotifierProvider<Sheets>((ref) {
 
 final currentFileProvider = StateProvider<File>((ref) {
   final loading = ref.watch(loadingProvider);
+  if (loading.data == null) return null;
 
-  return loading
-      .whenData((value) {
-        final sheets = ref.read(sheetsProvider);
-        return sheets.isEmpty ? null : File(sheets.first);
-      })
-      .data
-      .value;
+  final sheets = ref.read(sheetsProvider);
+  return sheets.isEmpty ? null : File(sheets.first);
 });
 
-final currentItems = StateNotifierProvider<Items>((ref) {
-  final file = ref.watch(currentFileProvider).state;
-  return Items(file);
+final parsingProvider = FutureProvider<List>((ref) async {
+  final currentFile = ref.watch(currentFileProvider).state;
+
+  if (currentFile == null) return null;
+
+  return BeancountParser().parse(await currentFile.readAsString()).value;
+});
+
+final currentItemsProvider = StateNotifierProvider<Items>((ref) {
+  final items = ref.watch(parsingProvider);
+
+  if (items.data == null) return null;
+
+  return Items(ref.read, items.data.value.map((e) => Item(e)).toList());
+});
+
+final searchPatternProvider = StateProvider<String>((ref) => "");
+
+final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
+  final searchPattern = ref.watch(searchPatternProvider).state;
+  final items = ref.watch(currentItemsProvider.state);
+
+  final filters = SearchBarViewDelegate.generateFilters(searchPattern);
+  return items?.where((element) {
+    if (filters == null || filters.isEmpty) return true;
+    for (final filter in filters) {
+      if (!filter(element)) return false;
+    }
+    return true;
+  })?.toList();
 });

@@ -135,18 +135,111 @@ class Home extends HookWidget {
             ? const Text('Home')
             : Text(path.basenameWithoutExtension(currentFile.state.path)),
       ),
-      body: currentFile.state == null ? Startup() : Items(currentFile.state),
+      body: currentFile.state == null ? Startup() : Parsing(),
     );
   }
 }
 
-class Items extends HookWidget {
-  final File file;
-
-  Items(this.file);
-
+class Parsing extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    final parsing = useProvider(parsingProvider);
+
+    return parsing.when(
+        data: (_) => Items(),
+        loading: () => Center(
+              child: SizedBox(
+                child: CircularProgressIndicator(),
+                width: 60,
+                height: 60,
+              ),
+            ),
+        error: (err, stack) => parserException(err));
+  }
+}
+
+class Items extends HookWidget {
+  @override
+  Widget build(BuildContext context) {
+    final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
+
+    return ListView.builder(
+      itemBuilder: (context, i) => ProviderScope(
+        overrides: [
+          _currentItem.overrideWithValue(showedItems.elementAt(i)),
+        ],
+        child: const ItemWidget(),
+      ),
+    );
+  }
+}
+
+final _currentItem = ScopedProvider<Item>(null);
+
+class ItemWidget extends HookWidget {
+  const ItemWidget({Key key}) : super(key: key);
+
+  static const _maxLines = 3;
+  @override
+  Widget build(BuildContext context) {
+    final item = useProvider(_currentItem);
+    final lines = LineSplitter.split(item.toString()).toList();
+    final content = lines.sublist(1).join("\n");
+    final needCollapse = lines.length > _maxLines;
+
+    return Dismissible(
+      key: ObjectKey(item),
+      child: Card(
+        child: !needCollapse
+            ? ListTile(
+                leading: Icon(item.icon),
+                // leading: Text(i.toString()),
+                title: Text(lines[0]),
+                subtitle: content.isEmpty ? null : Text(content),
+              )
+            : ExpandableNotifier(
+                child: ListTile(
+                  leading: Icon(item.icon),
+                  title: Text(lines[0]),
+                  subtitle: Expandable(
+                    collapsed: Text(
+                      content,
+                      maxLines: _maxLines - 1,
+                    ),
+                    expanded: Text(content),
+                  ),
+                  trailing: Builder(
+                    builder: (context) {
+                      final controller = ExpandableController.of(context);
+                      return IconButton(
+                        icon: Icon(controller.expanded
+                            ? Icons.expand_less
+                            : Icons.expand_more),
+                        onPressed: () {
+                          controller.toggle();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+      ),
+      onDismissed: (direction) {
+        context.read(currentItemsProvider).del(item);
+
+        Scaffold.of(context)
+          ..removeCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            duration: const Duration(seconds: 2),
+            content: const Text('Item removed'),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () {
+                context.read(currentItemsProvider).add(item);
+              },
+            ),
+          ));
+      },
+    );
   }
 }

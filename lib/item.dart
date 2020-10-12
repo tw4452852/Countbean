@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Countbean/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -56,10 +57,11 @@ class Item {
 }
 
 class Items extends StateNotifier<List<Item>> {
-  final File file;
-  Items(this.file, [List<Item> initItems]) : super(initItems ?? []);
+  final Reader read;
+  Items(this.read, [List<Item> initItems]) : super(initItems ?? []);
 
   _updateFile({bool isAppend = false, Iterable appendItems}) {
+    final file = read(currentFileProvider).state;
     if (file == null) {
       return;
     }
