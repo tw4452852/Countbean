@@ -477,14 +477,16 @@ class Items extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
+    final scrollController = useScrollController();
 
     return WidgetsVisibilityProvider(
       condition: (_) => null,
       child: Column(
         children: [
-          AccountsStatistics(),
+          AccountsStatistics(scrollController),
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               itemCount: showedItems.length,
               itemBuilder: (context, i) => VisibleNotifierWidget(
                 data: showedItems.length - i,
@@ -504,71 +506,83 @@ class Items extends HookWidget {
 }
 
 class AccountsStatistics extends HookWidget {
+  final ScrollController scrollController;
+  AccountsStatistics(this.scrollController, {Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final accounts = useProvider(statisticsAccountsProvider);
     final items = useProvider(currentDisplayedItemsProvider);
     final s = context.read(currentStatisticsProvider);
 
-    return ListTile(
-      leading: const Icon(Icons.equalizer),
-      title: const Text('Account statistics'),
-      trailing: IconButton(
-        icon: Icon(Icons.add),
-        onPressed: () async {
-          final v = await showMenu<String>(
-            context: context,
-            position: RelativeRect.fromLTRB(100, 100, 0, 200),
-            items: s.accounts
-                .map((e) => PopupMenuItem(
-                      value: e,
-                      child: Text(e),
-                    ))
-                .toList(),
-          );
-          if (v != null && v.isNotEmpty && !accounts.state.contains(v)) {
-            accounts.state.add(v);
-            accounts.state = List.from(accounts.state);
-          }
-        },
+    return GestureDetector(
+      onDoubleTap: () => scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       ),
-      subtitle: accounts.state.isEmpty
-          ? null
-          : WidgetsVisibilityBuilder(
-              buildWhen: (previous, current) => !listEquals(
-                  previous.positionDataList.map((e) => e.data).toList(),
-                  current.positionDataList.map((e) => e.data).toList()),
-              builder: (context, event) {
-                int endIndex = event.positionDataList.first.data;
-                if (endIndex > items.length) {
-                  endIndex = items.length;
-                }
+      child: ListTile(
+        leading: const Icon(Icons.equalizer),
+        title: const Text('Account statistics'),
+        trailing: IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () async {
+            final v = await showMenu<String>(
+              context: context,
+              position: RelativeRect.fromLTRB(100, 100, 0, 200),
+              items: s.accounts
+                  .map((e) => PopupMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                  .toList(),
+            );
+            if (v != null && v.isNotEmpty && !accounts.state.contains(v)) {
+              accounts.state.add(v);
+              accounts.state = List.from(accounts.state);
+            }
+          },
+        ),
+        subtitle: accounts.state.isEmpty
+            ? null
+            : WidgetsVisibilityBuilder(
+                buildWhen: (previous, current) => !listEquals(
+                    previous.positionDataList.map((e) => e.data).toList(),
+                    current.positionDataList.map((e) => e.data).toList()),
+                builder: (context, event) {
+                  int endIndex = event.positionDataList.first.data;
+                  if (endIndex > items.length) {
+                    endIndex = items.length;
+                  }
 
-                final validItems =
-                    items.sublist(0, endIndex).map((e) => e.content);
-                return Wrap(
-                  children: accounts.state.map(
-                    (a) {
-                      final balance = s.balance(a, validItems);
-                      return Chip(
-                        labelPadding: EdgeInsets.only(left: 15),
-                        label: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('$a:'),
-                            ...balance.map((e) => Text(e.toString())).toList(),
-                          ],
-                        ),
-                        onDeleted: () {
-                          accounts.state.remove(a);
-                          accounts.state = List.from(accounts.state);
-                        },
-                      );
-                    },
-                  ).toList(),
-                );
-              },
-            ),
+                  final validItems =
+                      items.sublist(0, endIndex).map((e) => e.content);
+                  return Wrap(
+                    children: accounts.state.map(
+                      (a) {
+                        final balance = s.balance(a, validItems);
+                        return Chip(
+                          labelPadding: EdgeInsets.only(left: 15),
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('$a:'),
+                              ...balance
+                                  .map((e) => Text(e.toString()))
+                                  .toList(),
+                            ],
+                          ),
+                          onDeleted: () {
+                            accounts.state.remove(a);
+                            accounts.state = List.from(accounts.state);
+                          },
+                        );
+                      },
+                    ).toList(),
+                  );
+                },
+              ),
+      ),
     );
   }
 }
@@ -624,20 +638,23 @@ class ItemWidget extends HookWidget {
               ),
       ),
       onDismissed: (direction) {
-        context.read(currentItemsProvider).del(item);
+        final items = context.read(currentItemsProvider);
+        items.del(item);
 
         Scaffold.of(context)
           ..removeCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            duration: const Duration(seconds: 2),
-            content: const Text('Item removed'),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () {
-                context.read(currentItemsProvider).add([item]);
-              },
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 2),
+              content: const Text('Item removed'),
+              action: SnackBarAction(
+                label: 'Undo',
+                onPressed: () {
+                  items.add([item]);
+                },
+              ),
             ),
-          ));
+          );
       },
     );
   }
