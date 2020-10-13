@@ -60,7 +60,7 @@ class Items extends StateNotifier<List<Item>> {
   final Reader read;
   Items(this.read, [List<Item> initItems]) : super(initItems ?? []);
 
-  _updateFile({bool isAppend = false, Iterable appendItems}) {
+  _updateFile({bool isAppend = false, Iterable<Item> appendItems}) {
     final file = read(currentFileProvider).state;
     if (file == null) {
       return;
@@ -73,17 +73,23 @@ class Items extends StateNotifier<List<Item>> {
     sink.flush().then((_) => sink.close());
   }
 
-  add(Item item) {
-    final i =
-        state.lastIndexWhere((element) => !element.date.isAfter(item.date)) + 1;
-    final isAppend = i == state.length;
-    state = [
-      ...state.sublist(0, i),
-      item,
-      ...state.sublist(i),
-    ];
-    _updateFile(isAppend: isAppend, appendItems: isAppend ? [item] : null);
-    read(currentStatisticsProvider).addItems([item]);
+  add(Iterable<Item> items) {
+    int i;
+    bool isAppend;
+
+    for (final item in items) {
+      i = state.lastIndexWhere((element) => !element.date.isAfter(item.date)) +
+          1;
+      isAppend = i == state.length;
+      state = [
+        ...state.sublist(0, i),
+        item,
+        ...state.sublist(i),
+      ];
+    }
+
+    _updateFile(isAppend: isAppend, appendItems: isAppend ? items : null);
+    read(currentStatisticsProvider).addItems(items);
   }
 
   del(Item item) {

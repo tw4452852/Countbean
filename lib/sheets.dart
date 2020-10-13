@@ -5,17 +5,18 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class Sheets extends StateNotifier<List<String>> {
   Sheets([List<String> initiSheets]) : super(initiSheets ?? []);
 
-  bool add(String path) {
+  Future<File> add(String path) async {
+    final f = File(path);
+
     if (state.contains(path)) {
-      return false;
+      return f;
     }
 
-    File(path).setLastAccessed(DateTime.now());
     state = [
       path,
       ...state,
     ];
-    return true;
+    return f.create();
   }
 
   bool del(String path) {
@@ -32,19 +33,38 @@ class Sheets extends StateNotifier<List<String>> {
     return true;
   }
 
-  bool rename(String o, String n) {
+  Future<File> rename(String o, String n) async {
     final i = state.indexOf(o);
     if (i == -1) {
-      return false;
+      return null;
     }
 
-    File(o).rename(n).then((f) => f.setLastAccessed(DateTime.now()));
+    
     state = [
       n,
       ...state.sublist(0, i),
       ...state.sublist(i + 1),
     ];
-    return true;
+    return File(o).rename(n).then((f) {
+      f.setLastAccessed(DateTime.now());
+      return f;
+    });
+  }
+
+  Future<File> open(String p) async {
+    final i = state.indexOf(p);
+    if (i == -1) {
+      return null;
+    }
+
+    state = [
+      p,
+      ...state.sublist(0, i),
+      ...state.sublist(i+1),
+    ];
+    final f = File(p);
+
+    return f.setLastAccessed(DateTime.now()).then((_) => f);
   }
 
   bool get isEmpty => state == null || state.isEmpty;

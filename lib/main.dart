@@ -11,9 +11,8 @@ import 'package:package_info/package_info.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-import './parser/parser.dart';
 import './parser/widget.dart';
-import './statistics.dart';
+import './parser/parser.dart';
 import './add.dart';
 import './item.dart';
 import './search.dart';
@@ -136,6 +135,7 @@ class Home extends HookWidget {
             : Text(path.basenameWithoutExtension(currentFile.state.path)),
       ),
       body: currentFile.state == null ? Startup() : Parsing(),
+      drawer: MyDrawer(),
       floatingActionButton: currentFile.state == null
           ? null
           : FloatingActionButton(
@@ -147,12 +147,272 @@ class Home extends HookWidget {
                   ),
                 );
                 if (result != null && result.isNotEmpty) {
-                  result.forEach(
-                      (e) => context.read(currentItemsProvider).add(Item(e)));
+                  context
+                      .read(currentItemsProvider)
+                      .add(result.map((e) => Item(e)));
                 }
               },
               child: const Icon(Icons.create),
             ),
+    );
+  }
+}
+
+class MyDrawer extends HookWidget {
+  @override
+  Widget build(BuildContext context) {
+    final file = context.read(currentFileProvider).state;
+    final items = context.read(currentItemsProvider.state);
+    final ctx = useContext();
+
+    return Drawer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DrawerHeader(
+            child: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else if (snapshot.hasData) {
+                  final version = snapshot.data.version;
+                  final buildNumber = snapshot.data.buildNumber;
+                  return Center(
+                    child: Text(
+                        "Version:$version${buildNumber != null && buildNumber.isNotEmpty ? '+$buildNumber' : ''}"),
+                  );
+                } else {
+                  return Center(
+                    child: SizedBox(
+                      child: CircularProgressIndicator(),
+                      width: 60,
+                      height: 60,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: const Text('New'),
+            onTap: () async {
+              final directory = await getApplicationDocumentsDirectory();
+              final name = await showDialog<String>(
+                  context: context,
+                  builder: (context) {
+                    String input;
+                    return AlertDialog(
+                      scrollable: true,
+                      title: const Text('Create a new sheet'),
+                      content: TextField(
+                        autofocus: true,
+                        decoration: InputDecoration(labelText: "Name:"),
+                        onChanged: (v) => input = v,
+                      ),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: const Text("CANCEL"),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        FlatButton(
+                          child: const Text("OK"),
+                          onPressed: () {
+                            Navigator.of(context).pop(input);
+                          },
+                        ),
+                      ],
+                    );
+                  });
+              if (name != null && name.isNotEmpty) {
+                context.read(currentFileProvider).state = await context
+                    .read(sheetsProvider)
+                    .add('${directory.path}/$name.cb');
+                Navigator.pop(context);
+              }
+            },
+          ),
+          if (file != null) ...[
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Delete'),
+              onTap: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return AlertDialog(
+                      content: Text(
+                          'Do you want to delete "${path.basenameWithoutExtension(file.path)}" ?'),
+                      actions: [
+                        FlatButton(
+                          child: const Text("YES"),
+                          onPressed: () => Navigator.of(context).pop(true),
+                        ),
+                        FlatButton(
+                          child: const Text("NO"),
+                          onPressed: () => Navigator.of(context).pop(false),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (confirm) {
+                  final s = context.read(sheetsProvider);
+                  s.del(file.path);
+                  context.read(currentFileProvider).state = File(s.first);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            if (Platform.isAndroid && items != null && items.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.arrow_upward),
+                title: const Text('Export'),
+                onTap: () async {
+                  final extRoot = await getExternalStorageDirectory();
+                  final dest = await showDialog<String>(
+                      context: ctx,
+                      builder: (context) {
+                        String p = '${path.basename(file.path)}';
+                        return AlertDialog(
+                          scrollable: true,
+                          title: const Text('Export to:'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${extRoot.path}/',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              TextFormField(
+                                autofocus: true,
+                                initialValue: p,
+                                onChanged: (v) => p = v,
+                              ),
+                            ],
+                          ),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: const Text("CANCEL"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            FlatButton(
+                              child: const Text("OK"),
+                              onPressed: () {
+                                Navigator.of(context).pop(p);
+                              },
+                            ),
+                          ],
+                        );
+                      });
+                  if (dest != null && dest.isNotEmpty) {
+                    final p = path.join(extRoot.path, dest);
+                    await File(p).create(recursive: true);
+                    await file.copy(p);
+                    Navigator.pop(context);
+                    Scaffold.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        duration: const Duration(seconds: 1),
+                        content: const Text('Exported'),
+                      ));
+                  }
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.arrow_downward),
+              title: const Text('Import'),
+              onTap: () async {
+                final src = await FilePicker.getFile();
+                if (src != null) {
+                  final result = await showDialog<List>(
+                    context: ctx,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return FutureBuilder<List>(
+                        future: src.readAsString().then(
+                            (data) => BeancountParser().parse(data).value),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return AlertDialog(
+                              scrollable: true,
+                              contentPadding: EdgeInsets.only(top: 10),
+                              content: parserException(snapshot.error),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: const Text("OK"),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
+                            );
+                          } else {
+                            if (snapshot.hasData) {
+                              Future.delayed(Duration.zero, () {
+                                Navigator.pop(context, snapshot.data);
+                              });
+                            }
+                            return SimpleDialog(
+                              children: [
+                                Center(
+                                  child: SizedBox(
+                                    child: CircularProgressIndicator(),
+                                    width: 60,
+                                    height: 60,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      );
+                    },
+                  );
+
+                  if (result != null && result.isNotEmpty) {
+                    context
+                        .read(currentItemsProvider)
+                        .add(result.map((e) => Item(e)));
+
+                    Navigator.pop(context);
+                    Scaffold.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        duration: const Duration(seconds: 1),
+                        content: Text('Imported ${result.length} entries.'),
+                      ));
+                  }
+                }
+              },
+            ),
+          ],
+          Divider(),
+          Padding(
+            padding: EdgeInsets.only(left: 20),
+            child: const Text('Sheets'),
+          ),
+          Expanded(
+            child: ListView(
+              children: context
+                  .read(sheetsProvider.state)
+                  .map((e) => ListTile(
+                        title: Text(path.basenameWithoutExtension(e)),
+                        onTap: () async {
+                          context.read(currentFileProvider).state =
+                              await context.read(sheetsProvider).open(e);
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -181,6 +441,7 @@ class Items extends HookWidget {
     final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
 
     return ListView.builder(
+      itemCount: showedItems.length,
       itemBuilder: (context, i) => ProviderScope(
         overrides: [
           _currentItem.overrideWithValue(showedItems.elementAt(i)),
@@ -252,7 +513,7 @@ class ItemWidget extends HookWidget {
             action: SnackBarAction(
               label: 'Undo',
               onPressed: () {
-                context.read(currentItemsProvider).add(item);
+                context.read(currentItemsProvider).add([item]);
               },
             ),
           ));
