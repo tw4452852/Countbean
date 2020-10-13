@@ -133,6 +133,43 @@ class Home extends HookWidget {
         title: currentFile.state == null
             ? const Text('Home')
             : Text(path.basenameWithoutExtension(currentFile.state.path)),
+        actions: [
+          Consumer(
+            builder: (context, watch, child) {
+              final searchPattern = watch(searchPatternProvider);
+              return Row(
+                children: [
+                  if (searchPattern.state.isNotEmpty)
+                    SizedBox(
+                      width: 100,
+                      child: Chip(
+                        label: Text(
+                          searchPattern.state,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onDeleted: () {
+                          searchPattern.state = '';
+                        },
+                      ),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () async {
+                      final pattern = await showSearch<String>(
+                        context: context,
+                        delegate: SearchBarViewDelegate(),
+                        query: searchPattern.state,
+                      );
+                      if (pattern != null && pattern != searchPattern.state) {
+                        searchPattern.state = pattern;
+                      }
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: currentFile.state == null ? Startup() : Parsing(),
       drawer: MyDrawer(),

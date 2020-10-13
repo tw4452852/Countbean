@@ -52,7 +52,10 @@ final currentItemsProvider = StateNotifierProvider<Items>((ref) {
   return Items(ref.read, items.data.value.map((e) => Item(e)).toList());
 });
 
-final searchPatternProvider = StateProvider<String>((ref) => "");
+final searchPatternProvider = StateProvider<String>((ref) {
+  ref.watch(currentFileProvider);
+  return '';
+});
 
 final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
   final searchPattern = ref.watch(searchPatternProvider).state;
