@@ -1,15 +1,16 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:expandable/expandable.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:package_info/package_info.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
 
 import './parser/widget.dart';
 import './parser/parser.dart';
@@ -477,14 +478,97 @@ class Items extends HookWidget {
   Widget build(BuildContext context) {
     final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
 
-    return ListView.builder(
-      itemCount: showedItems.length,
-      itemBuilder: (context, i) => ProviderScope(
-        overrides: [
-          _currentItem.overrideWithValue(showedItems.elementAt(i)),
+    return WidgetsVisibilityProvider(
+      condition: (_) => null,
+      child: Column(
+        children: [
+          AccountsStatistics(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: showedItems.length,
+              itemBuilder: (context, i) => VisibleNotifierWidget(
+                data: showedItems.length - i,
+                builder: (context, notification, positionData) => ProviderScope(
+                  overrides: [
+                    _currentItem.overrideWithValue(showedItems.elementAt(i)),
+                  ],
+                  child: const ItemWidget(),
+                ),
+              ),
+            ),
+          ),
         ],
-        child: const ItemWidget(),
       ),
+    );
+  }
+}
+
+class AccountsStatistics extends HookWidget {
+  @override
+  Widget build(BuildContext context) {
+    final accounts = useProvider(statisticsAccountsProvider);
+    final items = useProvider(currentDisplayedItemsProvider);
+    final s = context.read(currentStatisticsProvider);
+
+    return ListTile(
+      leading: const Icon(Icons.equalizer),
+      title: const Text('Account statistics'),
+      trailing: IconButton(
+        icon: Icon(Icons.add),
+        onPressed: () async {
+          final v = await showMenu<String>(
+            context: context,
+            position: RelativeRect.fromLTRB(100, 100, 0, 200),
+            items: s.accounts
+                .map((e) => PopupMenuItem(
+                      value: e,
+                      child: Text(e),
+                    ))
+                .toList(),
+          );
+          if (v != null && v.isNotEmpty && !accounts.state.contains(v)) {
+            accounts.state.add(v);
+            accounts.state = List.from(accounts.state);
+          }
+        },
+      ),
+      subtitle: accounts.state.isEmpty
+          ? null
+          : WidgetsVisibilityBuilder(
+              buildWhen: (previous, current) => !listEquals(
+                  previous.positionDataList.map((e) => e.data).toList(),
+                  current.positionDataList.map((e) => e.data).toList()),
+              builder: (context, event) {
+                int endIndex = event.positionDataList.first.data;
+                if (endIndex > items.length) {
+                  endIndex = items.length;
+                }
+
+                final validItems =
+                    items.sublist(0, endIndex).map((e) => e.content);
+                return Wrap(
+                  children: accounts.state.map(
+                    (a) {
+                      final balance = s.balance(a, validItems);
+                      return Chip(
+                        labelPadding: EdgeInsets.only(left: 15),
+                        label: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$a:'),
+                            ...balance.map((e) => Text(e.toString())).toList(),
+                          ],
+                        ),
+                        onDeleted: () {
+                          accounts.state.remove(a);
+                          accounts.state = List.from(accounts.state);
+                        },
+                      );
+                    },
+                  ).toList(),
+                );
+              },
+            ),
     );
   }
 }

@@ -57,6 +57,11 @@ final searchPatternProvider = StateProvider<String>((ref) {
   return '';
 });
 
+final statisticsAccountsProvider = StateProvider<List<String>>((ref) {
+  ref.watch(currentFileProvider);
+  return [];
+});
+
 final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
   final searchPattern = ref.watch(searchPatternProvider).state;
   final items = ref.watch(currentItemsProvider.state);
