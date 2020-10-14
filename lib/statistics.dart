@@ -75,7 +75,8 @@ class Statistics {
         if (c != null) {
           final i = getSlot(c.currency);
 
-          e.account == account ? ret[i] += c : ret[i] -= c;
+          if (e.account == account) ret[i] += c;
+          if (e.padAccount == account) ret[i] -= c;
         }
       }
     }

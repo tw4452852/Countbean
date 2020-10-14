@@ -592,15 +592,15 @@ void main() {
             Cost(amount: 10, currency: 'USD'),
           ]));
       expect(
-          s.balance('b', items.sublist(0, 3)),
+          s.balance('b', items),
           equals([
             Cost(amount: 20, currency: 'CNY'),
           ]));
       expect(
-          s.balance('c', items.sublist(3, 5)),
+          s.balance('c', items),
           equals([
-            Cost(amount: -10, currency: 'USD'),
             Cost(amount: -40, currency: 'CNY'),
+            Cost(amount: -10, currency: 'USD'),
           ]));
     });
 
@@ -636,7 +636,7 @@ void main() {
             Cost(amount: 20, currency: 'CNY'),
           ]));
       expect(
-          s.balance('b', items.sublist(0, 2)),
+          s.balance('b', items),
           equals([
             Cost(amount: -20, currency: 'CNY'),
           ]));
@@ -660,7 +660,7 @@ void main() {
             Cost(amount: 20, currency: 'CNY'),
           ]));
       expect(
-          s.balance('b', items.sublist(0, 2)),
+          s.balance('b', items),
           equals([
             Cost(amount: -20, currency: 'CNY'),
           ]));
@@ -698,7 +698,7 @@ void main() {
             Cost(amount: 20, currency: 'CNY'),
           ]));
       expect(
-          s.balance('b', items.sublist(0, 2)),
+          s.balance('b', items),
           equals([
             Cost(amount: -20, currency: 'CNY'),
           ]));

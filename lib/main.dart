@@ -11,6 +11,8 @@ import 'package:package_info/package_info.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
+import 'package:ext_storage/ext_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import './parser/widget.dart';
 import './parser/parser.dart';
@@ -306,12 +308,23 @@ class MyDrawer extends HookWidget {
                 }
               },
             ),
-            if (Platform.isAndroid && items != null && items.isNotEmpty)
+            if (items != null && items.isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.arrow_upward),
                 title: const Text('Export'),
                 onTap: () async {
-                  final extRoot = await getExternalStorageDirectory();
+                  String root;
+                  if (Platform.isAndroid) {
+                    final permission = await Permission.storage.request();
+                    if(!permission.isGranted) {
+                      return;
+                    }
+                    root = await ExtStorage.getExternalStorageDirectory();
+                  } else {
+                    root = (await getApplicationDocumentsDirectory()).path;
+                  }
+                  root = path.join(root, 'cb/');
+                  
                   final dest = await showDialog<String>(
                       context: ctx,
                       builder: (context) {
@@ -321,9 +334,10 @@ class MyDrawer extends HookWidget {
                           title: const Text('Export to:'),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${extRoot.path}/',
+                                root,
                                 style: TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -350,7 +364,7 @@ class MyDrawer extends HookWidget {
                         );
                       });
                   if (dest != null && dest.isNotEmpty) {
-                    final p = path.join(extRoot.path, dest);
+                    final p = path.join(root, dest);
                     await File(p).create(recursive: true);
                     await file.copy(p);
                     Navigator.pop(context);
@@ -358,7 +372,7 @@ class MyDrawer extends HookWidget {
                       ..removeCurrentSnackBar()
                       ..showSnackBar(SnackBar(
                         duration: const Duration(seconds: 1),
-                        content: const Text('Exported'),
+                        content: Text('Exported to $p'),
                       ));
                   }
                 },

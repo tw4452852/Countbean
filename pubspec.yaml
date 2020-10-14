@@ -21,6 +21,8 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  permission_handler: ^5.0.1+1
+  ext_storage: ^1.0.3
   widgets_visibility_provider: ^2.0.2
   hooks_riverpod: ^0.11.0
   flutter_hooks: ^0.14.0
