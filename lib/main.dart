@@ -96,7 +96,7 @@ class Startup extends HookWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           RaisedButton(
-            child: const Text('Create a new sheet'),
+            child: const Text('Create a empty sheet'),
             onPressed: () async {
               final f = await createFile(context);
 
@@ -301,7 +301,7 @@ class MyDrawer extends HookWidget {
                 if (confirm) {
                   final s = context.read(sheetsProvider);
                   s.del(file.path);
-                  context.read(currentFileProvider).state = File(s.first);
+                  context.read(currentFileProvider).state = s.first == null ? null : File(s.first);
                   Navigator.pop(context);
                 }
               },

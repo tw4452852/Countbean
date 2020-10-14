@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 import './parser/model.dart';
@@ -9,15 +10,7 @@ import './add_event.dart';
 import './add_account.dart';
 import './add_commodity.dart';
 
-class AddWidget extends StatefulWidget {
-  @override
-  AddWidget({Key key}) : super(key: key);
-
-  @override
-  _AddWidgetState createState() => _AddWidgetState();
-}
-
-class _AddWidgetState extends State<AddWidget> {
+class AddWidget extends HookWidget {
   final List<String> types = const [
     "Transaction",
     "Balance",
@@ -34,16 +27,12 @@ class _AddWidgetState extends State<AddWidget> {
   ];
   final List<GlobalKey<FormState>> keys =
       List.generate(5, (_) => GlobalKey<FormState>(), growable: false);
-  List items;
-
-  onSave(List l) {
-    if (l != null && l.isNotEmpty) {
-      items = l;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    List items;
+    final tabController = useTabController(initialLength: types.length);
+
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -52,74 +41,71 @@ class _AddWidgetState extends State<AddWidget> {
           currentFocus.unfocus();
         }
       },
-      child: DefaultTabController(
-        length: types.length,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Add'),
-            bottom: TabBar(
-              isScrollable: true,
-              tabs: [
-                for (var i = 0; i < types.length; i++)
-                  Tab(
-                    icon: Icon(icons[i]),
-                    text: types[i],
-                  ),
-              ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Add'),
+          bottom: TabBar(
+            controller: tabController,
+            isScrollable: true,
+            tabs: [
+              for (var i = 0; i < types.length; i++)
+                Tab(
+                  icon: Icon(icons[i]),
+                  text: types[i],
+                ),
+            ],
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.done),
+              onPressed: () {
+                final i = tabController.index;
+                if (keys[i].currentState.validate()) {
+                  keys[i].currentState.save();
+                  Navigator.of(context).pop(items);
+                }
+              },
             ),
-            actions: <Widget>[
-              Builder(
-                builder: (context) => IconButton(
-                  icon: Icon(Icons.done),
-                  onPressed: () {
-                    final i = DefaultTabController.of(context).index;
-                    if (keys[i].currentState.validate()) {
-                      keys[i].currentState.save();
-                      Navigator.of(context).pop(items);
-                    }
-                  },
+          ],
+        ),
+        body: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 10,
+          ),
+          child: TabBarView(
+            controller: tabController,
+            children: [
+              Form(
+                key: keys[0],
+                child: TransactionAddWidget(
+                  onSave: (l) => items = l,
+                ),
+              ),
+              Form(
+                key: keys[1],
+                child: BalanceAddWidget(
+                  onSave: (l) => items = l,
+                ),
+              ),
+              Form(
+                key: keys[2],
+                child: EventAddWidget(
+                  onSave: (l) => items = l,
+                ),
+              ),
+              Form(
+                key: keys[3],
+                child: AccountAddWidget(
+                  onSave: (l) => items = l,
+                ),
+              ),
+              Form(
+                key: keys[4],
+                child: CommodityAddWidget(
+                  onSave: (l) => items = l,
                 ),
               ),
             ],
-          ),
-          body: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 10,
-            ),
-            child: TabBarView(
-              children: [
-                Form(
-                  key: keys[0],
-                  child: TransactionAddWidget(
-                    onSave: onSave,
-                  ),
-                ),
-                Form(
-                  key: keys[1],
-                  child: BalanceAddWidget(
-                    onSave: onSave,
-                  ),
-                ),
-                Form(
-                  key: keys[2],
-                  child: EventAddWidget(
-                    onSave: onSave,
-                  ),
-                ),
-                Form(
-                  key: keys[3],
-                  child: AccountAddWidget(
-                    onSave: onSave,
-                  ),
-                ),
-                Form(
-                  key: keys[4],
-                  child: CommodityAddWidget(
-                    onSave: onSave,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
@@ -221,7 +207,7 @@ mixin FormWithDate<T extends StatefulWidget> on State<T> {
       );
 }
 
-class TextFormFieldWithSuggestion extends StatefulWidget {
+class TextFormFieldWithSuggestion extends HookWidget {
   final String name, initialValue;
   final List<String> suggestions;
   final FormFieldValidator<String> validator;
@@ -246,51 +232,33 @@ class TextFormFieldWithSuggestion extends StatefulWidget {
   })  : inputDecoration = inputDecoration ?? InputDecoration(labelText: name),
         super(key: key);
 
-  @override
-  _TexFormtFieldWithSuggestionState createState() =>
-      _TexFormtFieldWithSuggestionState();
-}
-
-class _TexFormtFieldWithSuggestionState
-    extends State<TextFormFieldWithSuggestion> {
-  final TextEditingController controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    controller.text = widget.initialValue;
-    widget.controller?.text = widget.initialValue;
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    controller?.text = initialValue;
+    final texteditingController = controller ?? useTextEditingController(text: initialValue);
+
     return TypeAheadFormField<String>(
       keepSuggestionsOnSuggestionSelected: true,
       autoFlipDirection: true,
       hideOnEmpty: true,
       hideOnError: true,
       hideOnLoading: true,
-      validator: widget.validator,
-      onSaved: widget.onSave,
+      validator: validator,
+      onSaved: onSave,
       textFieldConfiguration: TextFieldConfiguration(
-          textCapitalization: widget.textCapitalization,
-          autofocus: widget.autofocus,
-          controller: widget.controller ?? controller,
-          decoration: widget.inputDecoration,
+          textCapitalization: textCapitalization,
+          autofocus: autofocus,
+          controller: texteditingController,
+          decoration: inputDecoration,
           onEditingComplete: () {
             FocusScope.of(context).nextFocus();
           }),
       suggestionsCallback: (pattern) {
-        return widget.suggestions.where((e) => e.contains(pattern));
+        return suggestions.where((e) => e.contains(pattern));
       },
       onSuggestionSelected: (suggestion) {
-        controller.text = suggestion;
+        texteditingController.text = suggestion;
         FocusScope.of(context).nextFocus();
       },
       itemBuilder: (context, suggestion) {
