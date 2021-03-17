@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:Countbean/parser/parser.dart';
+import 'package:countbean/parser/parser.dart';
 
 void main() {
   group('Beancount parser can go back-and-forth on some records', () {

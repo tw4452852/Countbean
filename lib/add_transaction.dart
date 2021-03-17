@@ -1,8 +1,8 @@
-import 'package:Countbean/providers.dart';
+import 'package:countbean/providers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chips_input/flutter_chips_input.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chips_input/chips_input.dart';
 
 import './parser/model.dart';
 import './add.dart';
@@ -21,8 +21,8 @@ class TransactionAddWidget extends StatefulWidget {
 class _TransactionAddWidgetState extends State<TransactionAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
   String desc, payee, currency;
-  List<List> froms = [List(2)];
-  List<List> tos = [List(2)];
+  List<List> froms = [[]..length = 2];
+  List<List> tos = [[]..length = 2];
   List<String> ts = [];
   List<String> ls = [];
 
@@ -85,7 +85,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
           });
 
           if (empty > 1) {
-            Scaffold.of(context)
+            ScaffoldMessenger.of(context)
               ..removeCurrentSnackBar()
               ..showSnackBar(SnackBar(
                 duration: Duration(seconds: 1),
@@ -95,7 +95,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
           }
 
           if (empty == 0 && f + t != 0) {
-            Scaffold.of(context)
+            ScaffoldMessenger.of(context)
               ..removeCurrentSnackBar()
               ..showSnackBar(SnackBar(
                 duration: Duration(seconds: 1),
@@ -153,10 +153,9 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
               }
               return suggestions;
             },
-            suggestionBuilder: (context, state, tag) {
+            suggestionBuilder: (context, tag) {
               return ListTile(
                 title: Text(tag),
-                onTap: () => state.selectSuggestion(tag),
               );
             },
             chipBuilder: (context, state, tag) {
@@ -180,10 +179,9 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
               }
               return suggestions;
             },
-            suggestionBuilder: (context, state, link) {
+            suggestionBuilder: (context, link) {
               return ListTile(
                 title: Text(link),
-                onTap: () => state.selectSuggestion(link),
               );
             },
             chipBuilder: (context, state, link) {
@@ -258,7 +256,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
                           icon: const Icon(Icons.add),
                           onPressed: () {
                             setState(() {
-                              l.add(List(2));
+                              l.add([]..length = 2);
                             });
                           },
                         )

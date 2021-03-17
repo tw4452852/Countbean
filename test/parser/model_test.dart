@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:Countbean/parser/model.dart';
+import 'package:countbean/parser/model.dart';
 
 void main() {
   group('Posting.toString()', () {

@@ -1,10 +1,9 @@
-import 'package:Countbean/providers.dart';
+import 'package:countbean/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import './parser/model.dart';
 import './add.dart';
-
 
 class EventAddWidget extends StatefulWidget {
   final Function(List) onSave;
@@ -27,7 +26,7 @@ class _EventAddWidgetState extends State<EventAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-  final s = context.read(currentStatisticsProvider);
+    final s = context.read(currentStatisticsProvider);
     final types = s.eventTypes.toList();
     final values = s.eventValues.toList();
     return form(

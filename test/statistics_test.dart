@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:Countbean/statistics.dart';
-import 'package:Countbean/parser/model.dart';
+import 'package:countbean/statistics.dart';
+import 'package:countbean/parser/model.dart';
 
 void main() {
   group('Statistics.addItems()', () {

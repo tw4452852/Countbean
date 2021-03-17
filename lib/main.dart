@@ -11,7 +11,6 @@ import 'package:package_info/package_info.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
-import 'package:ext_storage/ext_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import './parser/widget.dart';
@@ -33,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Countbean',
+      title: 'countbean',
       home: MyHomePage(),
     );
   }
@@ -71,11 +70,11 @@ Future<File> createFile(context) async {
             onChanged: (v) => input = v,
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: const Text("CANCEL"),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            FlatButton(
+            TextButton(
               child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop(input);
@@ -97,7 +96,7 @@ class Startup extends HookWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          RaisedButton(
+          ElevatedButton(
             child: const Text('Create a empty sheet'),
             onPressed: () async {
               final f = await createFile(context);
@@ -108,15 +107,16 @@ class Startup extends HookWidget {
               }
             },
           ),
-          RaisedButton(
+          ElevatedButton(
             child: const Text('Import from file'),
             onPressed: () async {
-              final f = await FilePicker.getFile();
+              final f = await FilePicker.platform.pickFiles();
               final d = await getApplicationDocumentsDirectory();
               if (f != null) {
-                final p = path.join(
-                    d.path, '${path.basenameWithoutExtension(f.path)}.cb');
-                context.read(currentFileProvider).state = await f.copy(p);
+                final p = path.join(d.path,
+                    '${path.basenameWithoutExtension(f.files.single.path)}.cb');
+                context.read(currentFileProvider).state =
+                    await File(f.files.single.path).copy(p);
                 context.read(sheetsProvider).add(p);
               }
             },
@@ -254,11 +254,11 @@ class MyDrawer extends HookWidget {
                         onChanged: (v) => input = v,
                       ),
                       actions: <Widget>[
-                        FlatButton(
+                        TextButton(
                           child: const Text("CANCEL"),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
-                        FlatButton(
+                        TextButton(
                           child: const Text("OK"),
                           onPressed: () {
                             Navigator.of(context).pop(input);
@@ -288,11 +288,11 @@ class MyDrawer extends HookWidget {
                       content: Text(
                           'Do you want to delete "${path.basenameWithoutExtension(file.path)}" ?'),
                       actions: [
-                        FlatButton(
+                        TextButton(
                           child: const Text("YES"),
                           onPressed: () => Navigator.of(context).pop(true),
                         ),
-                        FlatButton(
+                        TextButton(
                           child: const Text("NO"),
                           onPressed: () => Navigator.of(context).pop(false),
                         ),
@@ -303,7 +303,8 @@ class MyDrawer extends HookWidget {
                 if (confirm) {
                   final s = context.read(sheetsProvider);
                   s.del(file.path);
-                  context.read(currentFileProvider).state = s.first == null ? null : File(s.first);
+                  context.read(currentFileProvider).state =
+                      s.first == null ? null : File(s.first);
                   Navigator.pop(context);
                 }
               },
@@ -313,18 +314,15 @@ class MyDrawer extends HookWidget {
                 leading: const Icon(Icons.arrow_upward),
                 title: const Text('Export'),
                 onTap: () async {
-                  String root;
                   if (Platform.isAndroid) {
                     final permission = await Permission.storage.request();
-                    if(!permission.isGranted) {
+                    if (!permission.isGranted) {
                       return;
                     }
-                    root = await ExtStorage.getExternalStorageDirectory();
-                  } else {
-                    root = (await getApplicationDocumentsDirectory()).path;
                   }
-                  root = path.join(root, 'cb/');
-                  
+                  final String root =
+                      await FilePicker.platform.getDirectoryPath();
+
                   final dest = await showDialog<String>(
                       context: ctx,
                       builder: (context) {
@@ -350,11 +348,11 @@ class MyDrawer extends HookWidget {
                             ],
                           ),
                           actions: <Widget>[
-                            FlatButton(
+                            TextButton(
                               child: const Text("CANCEL"),
                               onPressed: () => Navigator.of(context).pop(),
                             ),
-                            FlatButton(
+                            TextButton(
                               child: const Text("OK"),
                               onPressed: () {
                                 Navigator.of(context).pop(p);
@@ -368,7 +366,7 @@ class MyDrawer extends HookWidget {
                     await File(p).create(recursive: true);
                     await file.copy(p);
                     Navigator.pop(context);
-                    Scaffold.of(context)
+                    ScaffoldMessenger.of(context)
                       ..removeCurrentSnackBar()
                       ..showSnackBar(SnackBar(
                         duration: const Duration(seconds: 1),
@@ -381,14 +379,14 @@ class MyDrawer extends HookWidget {
               leading: const Icon(Icons.arrow_downward),
               title: const Text('Import'),
               onTap: () async {
-                final src = await FilePicker.getFile();
+                final src = await FilePicker.platform.pickFiles();
                 if (src != null) {
                   final result = await showDialog<List>(
                     context: ctx,
                     barrierDismissible: false,
                     builder: (context) {
                       return FutureBuilder<List>(
-                        future: src.readAsString().then(
+                        future: src.files.single.readStream.join().then(
                             (data) => BeancountParser().parse(data).value),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
@@ -397,7 +395,7 @@ class MyDrawer extends HookWidget {
                               contentPadding: EdgeInsets.only(top: 10),
                               content: parserException(snapshot.error),
                               actions: <Widget>[
-                                FlatButton(
+                                TextButton(
                                   child: const Text("OK"),
                                   onPressed: () => Navigator.pop(context),
                                 ),
@@ -432,7 +430,7 @@ class MyDrawer extends HookWidget {
                         .add(result.map((e) => Item(e)));
 
                     Navigator.pop(context);
-                    Scaffold.of(context)
+                    ScaffoldMessenger.of(context)
                       ..removeCurrentSnackBar()
                       ..showSnackBar(SnackBar(
                         duration: const Duration(seconds: 1),
@@ -655,7 +653,7 @@ class ItemWidget extends HookWidget {
         final items = context.read(currentItemsProvider);
         items.del(item);
 
-        Scaffold.of(context)
+        ScaffoldMessenger.of(context)
           ..removeCurrentSnackBar()
           ..showSnackBar(
             SnackBar(

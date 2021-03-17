@@ -1,7 +1,7 @@
-import 'package:Countbean/providers.dart';
+import 'package:countbean/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chips_input/flutter_chips_input.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:chips_input/chips_input.dart';
 
 import './add.dart';
 import './parser/model.dart';
@@ -87,10 +87,9 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
             }
             return suggestions;
           },
-          suggestionBuilder: (context, state, currency) {
+          suggestionBuilder: (context, currency) {
             return ListTile(
               title: Text(currency),
-              onTap: () => state.selectSuggestion(currency),
             );
           },
           chipBuilder: (context, state, currency) {
