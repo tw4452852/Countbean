@@ -15,14 +15,18 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.0.3+1
+version: 3.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+  collection: ^1.15.0
   permission_handler: ^6.1.0
-  widgets_visibility_provider: ^3.0.0-nullsafety.0
+  widgets_visibility_provider:
+    git:
+      url: https://github.com/tw4452852/widgets_visibility_provider
+      ref: type_casting_exception
   hooks_riverpod: ^0.13.1
   flutter_hooks: ^0.16.0
   package_info: ^2.0.0
@@ -33,7 +37,10 @@ dependencies:
   petitparser: ^4.0.2
   file_picker: ^3.0.0
   path_provider: ^2.0.1
-  ext_storage: ^1.0.3
+  ext_storage:
+    git:
+      url: https://github.com/Taskulu/ext_storage
+      ref: null-safety
   flutter:
     sdk: flutter
 

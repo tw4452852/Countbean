@@ -10,7 +10,7 @@ class AccountAddWidget extends StatefulWidget {
   final Function(List) onSave;
 
   @override
-  AccountAddWidget({Key key, @required this.onSave}) : super(key: key);
+  AccountAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _AccountAddWidgetState createState() => _AccountAddWidgetState();
@@ -18,7 +18,8 @@ class AccountAddWidget extends StatefulWidget {
 
 class _AccountAddWidgetState extends State<AccountAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
-  String action = "open", account;
+  String action = "open";
+  String? account;
   List<String> cs = [];
 
   @override
@@ -37,7 +38,7 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
           AccountAction(
             date: date,
             action: action,
-            account: account,
+            account: account!,
             currencies: cs,
           )
         ]);
@@ -83,7 +84,7 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
             findSuggestions: (String query) {
               final suggestions =
                   currencies.where((e) => e.contains(query)).toList();
-              if (query != null && query.isNotEmpty) {
+              if (query.isNotEmpty) {
                 suggestions.add(query.toUpperCase());
               }
               return suggestions;

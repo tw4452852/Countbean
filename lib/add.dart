@@ -30,7 +30,7 @@ class AddWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    List items;
+    List? items;
     final tabController = useTabController(initialLength: types.length);
 
     return GestureDetector(
@@ -60,8 +60,9 @@ class AddWidget extends HookWidget {
               icon: Icon(Icons.done),
               onPressed: () {
                 final i = tabController.index;
-                if (keys[i].currentState.validate()) {
-                  keys[i].currentState.save();
+                final currentState = keys[i].currentState;
+                if (currentState != null && currentState.validate()) {
+                  currentState.save();
                   Navigator.of(context).pop(items);
                 }
               },
@@ -114,7 +115,7 @@ class AddWidget extends HookWidget {
 }
 
 mixin FormWithDate<T extends StatefulWidget> on State<T> {
-  DateTime date;
+  late DateTime date;
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
 
@@ -131,24 +132,27 @@ mixin FormWithDate<T extends StatefulWidget> on State<T> {
   }
 
   Widget form({
-    @required List<Widget> children,
-    FormFieldSetter onSave,
-    FormFieldValidator validator,
+    required List<Widget> children,
+    FormFieldSetter? onSave,
+    FormFieldValidator? validator,
     bool withDate = true,
   }) =>
       FormField(
         onSaved: (_) {
-          _formKey.currentState.save();
+          _formKey.currentState?.save();
           if (onSave != null) {
             onSave(_);
           }
         },
         validator: (_) {
-          if (_formKey.currentState.validate()) {
-            if (validator != null) {
-              return validator(_);
+          final currentState = _formKey.currentState;
+          if (currentState != null) {
+            if (currentState.validate()) {
+              if (validator != null) {
+                return validator(_);
+              }
+              return null;
             }
-            return null;
           }
           return "Validate failed";
         },
@@ -208,39 +212,41 @@ mixin FormWithDate<T extends StatefulWidget> on State<T> {
 }
 
 class TextFormFieldWithSuggestion extends HookWidget {
-  final String name, initialValue;
-  final List<String> suggestions;
-  final FormFieldValidator<String> validator;
-  final FormFieldSetter onSave;
+  final String name;
+  final String initialValue;
+  final List<String>? suggestions;
+  final FormFieldValidator<String>? validator;
+  final FormFieldSetter? onSave;
   final InputDecoration inputDecoration;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final bool autofocus;
   final TextCapitalization textCapitalization;
   final bool goUp;
 
   @override
   TextFormFieldWithSuggestion({
-    Key key,
-    @required this.name,
+    Key? key,
+    required this.name,
     this.suggestions,
     this.validator,
     this.onSave,
-    this.initialValue,
+    String? initialValue,
     this.controller,
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.none,
-    InputDecoration inputDecoration,
+    InputDecoration? inputDecoration,
     this.goUp = false,
   })  : inputDecoration = inputDecoration ?? InputDecoration(labelText: name),
+        initialValue = initialValue ?? "",
         super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
     controller?.text = initialValue;
-    final texteditingController = controller ?? useTextEditingController(text: initialValue);
+    final texteditingController =
+        controller ?? useTextEditingController(text: initialValue);
 
-    return TypeAheadFormField<String>(
+    return TypeAheadFormField<String?>(
       keepSuggestionsOnSuggestionSelected: true,
       autoFlipDirection: true,
       hideOnEmpty: true,
@@ -257,15 +263,18 @@ class TextFormFieldWithSuggestion extends HookWidget {
             FocusScope.of(context).nextFocus();
           }),
       suggestionsCallback: (pattern) {
-        return suggestions.where((e) => e.contains(pattern));
+        final suggestions = this.suggestions;
+        return suggestions == null
+            ? Iterable.empty()
+            : suggestions.where((e) => e.contains(pattern));
       },
       onSuggestionSelected: (suggestion) {
-        texteditingController.text = suggestion;
+        texteditingController.text = suggestion!;
         FocusScope.of(context).nextFocus();
       },
       itemBuilder: (context, suggestion) {
         return ListTile(
-          title: Text(suggestion),
+          title: Text(suggestion!),
         );
       },
       direction: goUp ? AxisDirection.up : AxisDirection.down,

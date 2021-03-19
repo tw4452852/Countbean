@@ -9,7 +9,7 @@ class EventAddWidget extends StatefulWidget {
   final Function(List) onSave;
 
   @override
-  EventAddWidget({Key key, @required this.onSave}) : super(key: key);
+  EventAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _EventAddWidgetState createState() => _EventAddWidgetState();
@@ -17,7 +17,8 @@ class EventAddWidget extends StatefulWidget {
 
 class _EventAddWidgetState extends State<EventAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
-  String k, v = "";
+  String? k;
+  String v = "";
 
   @override
   bool get wantKeepAlive => true;
@@ -34,7 +35,7 @@ class _EventAddWidgetState extends State<EventAddWidget>
         widget.onSave([
           Event(
             date: date,
-            key: k,
+            key: k!,
             value: v,
           )
         ]);

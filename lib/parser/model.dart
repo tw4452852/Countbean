@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:intl/intl.dart';
 
 class Cost {
@@ -6,13 +5,13 @@ class Cost {
   String currency;
 
   Cost({
-    @required this.amount,
-    @required this.currency,
+    required this.amount,
+    required this.currency,
   });
 
   Cost copyWith({
-    double amount,
-    String currency,
+    double? amount,
+    String? currency,
   }) {
     return Cost(
       amount: amount ?? this.amount,
@@ -60,13 +59,13 @@ class Option {
   String value;
 
   Option({
-    @required this.key,
-    @required this.value,
+    required this.key,
+    required this.value,
   });
 
   Option copyWith({
-    String key,
-    String value,
+    String? key,
+    String? value,
   }) {
     return Option(
       key: key ?? this.key,
@@ -81,20 +80,18 @@ class Option {
 class Commodity {
   DateTime date;
   String currency;
-  Map<String, String> metadata;
+  Map<String, String>? metadata;
 
   Commodity({
-    @required this.date,
-    @required this.currency,
+    required this.date,
+    required this.currency,
     this.metadata,
-  }) {
-    metadata = metadata ?? {};
-  }
+  });
 
   Commodity copyWith({
-    DateTime date,
-    String currency,
-    Map<String, String> metadata,
+    DateTime? date,
+    String? currency,
+    Map<String, String>? metadata,
   }) {
     return Commodity(
       date: date ?? this.date,
@@ -105,12 +102,15 @@ class Commodity {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write(formatter.format(date));
     buffer.write(' commodity $currency');
 
-    for (MapEntry<String, String> meta in metadata.entries) {
-      buffer.writeln('\n  ${meta.key}: "${meta.value}"');
+    final metadata = this.metadata;
+    if (metadata != null) {
+      for (MapEntry<String, String> meta in metadata.entries) {
+        buffer.writeln('\n  ${meta.key}: "${meta.value}"');
+      }
     }
 
     return buffer.toString();
@@ -123,15 +123,15 @@ class Event {
   String value;
 
   Event({
-    @required this.date,
-    @required this.key,
-    @required this.value,
+    required this.date,
+    required this.key,
+    required this.value,
   });
 
   Event copyWith({
-    DateTime date,
-    String key,
-    String value,
+    DateTime? date,
+    String? key,
+    String? value,
   }) {
     return Event(
       date: date ?? this.date,
@@ -142,7 +142,7 @@ class Event {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write(formatter.format(date));
     buffer.write(' event "$key" "$value"');
 
@@ -153,24 +153,21 @@ class Event {
 class Posting {
   String flag;
   String account;
-  Cost cost;
-  Map<String, String> metadata;
+  Cost? cost;
+  Map<String, String>? metadata;
 
   Posting({
-    this.flag,
-    @required this.account,
+    String? flag,
+    required this.account,
     this.cost,
     this.metadata,
-  }) {
-    flag = flag ?? '*';
-    metadata = metadata ?? {};
-  }
+  }) : flag = flag ?? '*';
 
   Posting copyWith({
-    String flag,
-    String account,
-    Cost cost,
-    Map<String, String> metadata,
+    String? flag,
+    String? account,
+    Cost? cost,
+    Map<String, String>? metadata,
   }) {
     return Posting(
       flag: flag ?? this.flag,
@@ -182,7 +179,7 @@ class Posting {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
 
     if (flag != '*') buffer.write('$flag ');
 
@@ -192,53 +189,49 @@ class Posting {
       buffer.write(' $cost');
     }
 
-    for (MapEntry<String, String> meta in metadata.entries) {
-      buffer.write('\n  ${meta.key}: "${meta.value}"');
+    final metadata = this.metadata;
+    if (metadata != null) {
+      for (MapEntry<String, String> meta in metadata.entries) {
+        buffer.write('\n  ${meta.key}: "${meta.value}"');
+      }
     }
 
     return buffer.toString();
   }
 }
 
-var formatter = new DateFormat('yyyy-MM-dd');
+final formatter = new DateFormat('yyyy-MM-dd');
 
 class Transaction {
   DateTime date;
   String flag;
-  String payee;
-  String comment;
-  List<String> tags;
-  List<String> links;
-  Map<String, String> metadata;
-  List<Posting> postings;
+  String? payee;
+  String? comment;
+  List<String>? tags;
+  List<String>? links;
+  Map<String, String>? metadata;
+  List<Posting>? postings;
 
   Transaction({
-    this.date,
-    this.flag,
+    required this.date,
+    String? flag,
     this.payee,
     this.comment,
     this.tags,
     this.links,
     this.metadata,
     this.postings,
-  }) {
-    date = date ?? DateTime.now();
-    flag = flag ?? '*';
-    tags = tags ?? [];
-    links = links ?? [];
-    metadata = metadata ?? {};
-    postings = postings ?? [];
-  }
+  }) : flag = flag ?? '*';
 
   Transaction copyWith({
-    DateTime date,
-    String flag,
-    String payee,
-    String comment,
-    List<String> tags,
-    List<String> links,
-    Map<String, String> metadata,
-    List<Posting> postings,
+    DateTime? date,
+    String? flag,
+    String? payee,
+    String? comment,
+    List<String>? tags,
+    List<String>? links,
+    Map<String, String>? metadata,
+    List<Posting>? postings,
   }) {
     return Transaction(
       date: date ?? this.date,
@@ -254,10 +247,12 @@ class Transaction {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write(formatter.format(date));
     buffer.write(' $flag');
 
+    final payee = this.payee;
+    final comment = this.comment;
     if (payee != null && payee.isNotEmpty) {
       buffer.write(' "$payee" "${comment ?? ''}"');
     } else {
@@ -266,19 +261,31 @@ class Transaction {
       }
     }
 
-    for (String tag in tags.where((t) => t != null)) {
-      buffer.write(' #$tag');
+    final tags = this.tags;
+    if (tags != null) {
+      for (String tag in tags) {
+        buffer.write(' #$tag');
+      }
     }
-    for (String link in links.where((l) => l != null)) {
-      buffer.write(' ^$link');
+    final links = this.links;
+    if (links != null) {
+      for (String link in links) {
+        buffer.write(' ^$link');
+      }
     }
 
-    for (MapEntry<String, String> meta in metadata.entries) {
-      buffer.write('\n  ${meta.key}: "${meta.value}"');
+    final metadata = this.metadata;
+    if (metadata != null) {
+      for (MapEntry<String, String> meta in metadata.entries) {
+        buffer.write('\n  ${meta.key}: "${meta.value}"');
+      }
     }
 
-    for (Posting posting in postings) {
-      buffer.write('\n  ${posting.toString().replaceAll('\n', '\n  ')}');
+    final postings = this.postings;
+    if (postings != null) {
+      for (Posting posting in postings) {
+        buffer.write('\n  ${posting.toString().replaceAll('\n', '\n  ')}');
+      }
     }
 
     return buffer.toString();
@@ -289,22 +296,20 @@ class Balance {
   DateTime date;
   String account;
   Cost cost;
-  Map<String, String> metadata;
+  Map<String, String>? metadata;
 
   Balance({
-    @required this.date,
-    @required this.account,
-    @required this.cost,
+    required this.date,
+    required this.account,
+    required this.cost,
     this.metadata,
-  }) {
-    metadata = metadata ?? {};
-  }
+  });
 
   Balance copyWith({
-    DateTime date,
-    String account,
-    Cost cost,
-    Map<String, String> metadata,
+    DateTime? date,
+    String? account,
+    Cost? cost,
+    Map<String, String>? metadata,
   }) {
     return Balance(
       date: date ?? this.date,
@@ -316,11 +321,14 @@ class Balance {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write('${formatter.format(date)} balance $account $cost');
 
-    for (MapEntry<String, String> meta in metadata.entries) {
-      buffer.write('\n  ${meta.key}: "${meta.value}"');
+    final metadata = this.metadata;
+    if (metadata != null) {
+      for (MapEntry<String, String> meta in metadata.entries) {
+        buffer.write('\n  ${meta.key}: "${meta.value}"');
+      }
     }
 
     return buffer.toString();
@@ -331,22 +339,20 @@ class AccountAction {
   DateTime date;
   String action;
   String account;
-  List<String> currencies;
+  List<String>? currencies;
 
   AccountAction({
-    @required this.date,
-    @required this.action,
-    @required this.account,
+    required this.date,
+    required this.action,
+    required this.account,
     this.currencies,
-  }) {
-    currencies = currencies ?? [];
-  }
+  });
 
   AccountAction copyWith({
-    DateTime date,
-    String action,
-    String account,
-    List<String> currencies,
+    DateTime? date,
+    String? action,
+    String? account,
+    List<String>? currencies,
   }) {
     return AccountAction(
       date: date ?? this.date,
@@ -358,11 +364,12 @@ class AccountAction {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write(formatter.format(date));
     buffer.write(' $action $account');
 
-    if (currencies.isNotEmpty) {
+    final currencies = this.currencies;
+    if (currencies != null && currencies.isNotEmpty) {
       buffer.write(' ${currencies.join(',')}');
     }
 
@@ -375,20 +382,20 @@ typedef GetCost = Cost Function();
 class Pad {
   DateTime date;
   String account, padAccount;
-  GetCost cost;
+  GetCost? cost;
 
   Pad({
-    @required this.date,
-    @required this.account,
-    @required this.padAccount,
+    required this.date,
+    required this.account,
+    required this.padAccount,
     this.cost,
   });
 
   Pad copyWith({
-    DateTime date,
-    String account,
-    String padAccount,
-    GetCost cost,
+    DateTime? date,
+    String? account,
+    String? padAccount,
+    GetCost? cost,
   }) {
     return Pad(
       date: date ?? this.date,
@@ -400,9 +407,10 @@ class Pad {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = new StringBuffer();
     buffer.write(formatter.format(date));
     buffer.write(' pad $account $padAccount');
+    final cost = this.cost;
     if (cost != null) {
       buffer.write(' ;${cost()}');
     }

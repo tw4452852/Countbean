@@ -32,7 +32,7 @@ class BeancountParserDefinition extends BeancountGrammarDefinition {
 
   Parser singlePosting() => super.singlePosting().map((each) {
         final List e = each;
-        final Cost cost = e.elementAt(2);
+        final Cost? cost = e.elementAt(2);
         return Posting(
           flag: e.first,
           account: e.elementAt(1),
@@ -48,8 +48,8 @@ class BeancountParserDefinition extends BeancountGrammarDefinition {
 
   Parser transaction() => super.transaction().map((each) {
         final e = each as List;
-        String payee = (e.elementAt(2) as List).first;
-        String comment = (e.elementAt(2) as List).last;
+        String? payee = (e.elementAt(2) as List).first;
+        String? comment = (e.elementAt(2) as List).last;
         if (payee != null && comment == null) {
           comment = payee;
           payee = null;
@@ -80,7 +80,7 @@ class BeancountParserDefinition extends BeancountGrammarDefinition {
           date: e.first,
           action: e.elementAt(1),
           account: e.elementAt(2),
-          currencies: ((e.elementAt(3) as List) ?? [])
+          currencies: (e.elementAt(3) ?? [])
               .where(
                   (i) => i.toString().trim().isNotEmpty && i.toString() != ',')
               .toList()

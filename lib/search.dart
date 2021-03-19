@@ -7,7 +7,7 @@ import './item.dart';
 
 typedef Filter = bool Function(Item item);
 
-class SearchBarViewDelegate extends SearchDelegate<String> {
+class SearchBarViewDelegate extends SearchDelegate<String?> {
   static List<Filter> generateFilters(String s) {
     final List<Filter> ret = [];
 
@@ -81,7 +81,7 @@ class SearchBarViewDelegate extends SearchDelegate<String> {
         .toList();
     Set<String> suggestions = {};
 
-    DateTime dateFrom, dateTo;
+    DateTime? dateFrom, dateTo;
     already.forEach((e) {
       if (e.startsWith('DateFrom:')) {
         dateFrom = formatter.parse(e.split(':')[1]);

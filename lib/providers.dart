@@ -25,18 +25,22 @@ final loadingProvider = FutureProvider<List<String>>((ref) => loadSheets());
 
 final sheetsProvider = StateNotifierProvider<Sheets>((ref) {
   final loading = ref.watch(loadingProvider);
-  return loading.whenData((value) => Sheets(value)).data.value;
+
+  final data = loading.whenData((value) => Sheets(value)).data;
+
+  if (data == null) return Sheets();
+  return data.value;
 });
 
-final currentFileProvider = StateProvider<File>((ref) {
+final currentFileProvider = StateProvider<File?>((ref) {
   final loading = ref.watch(loadingProvider);
   if (loading.data == null) return null;
 
   final sheets = ref.read(sheetsProvider);
-  return sheets.isEmpty ? null : File(sheets.first);
+  return sheets.isEmpty ? null : File(sheets.first!);
 });
 
-final parsingProvider = FutureProvider<List>((ref) async {
+final parsingProvider = FutureProvider<List?>((ref) async {
   final currentFile = ref.watch(currentFileProvider).state;
 
   if (currentFile == null) return null;
@@ -47,9 +51,10 @@ final parsingProvider = FutureProvider<List>((ref) async {
 final currentItemsProvider = StateNotifierProvider<Items>((ref) {
   final items = ref.watch(parsingProvider);
 
-  if (items.data == null) return null;
+  final data = items.data;
+  if (data == null) return Items(ref.read);
 
-  return Items(ref.read, items.data.value.map((e) => Item(e)).toList());
+  return Items(ref.read, data.value?.map((e) => Item(e)).toList());
 });
 
 final searchPatternProvider = StateProvider<String>((ref) {
@@ -62,21 +67,21 @@ final statisticsAccountsProvider = StateProvider<List<String>>((ref) {
   return [];
 });
 
-final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
+final currentDisplayedItemsProvider = Provider<List<Item>?>((ref) {
   final searchPattern = ref.watch(searchPatternProvider).state;
   final items = ref.watch(currentItemsProvider.state);
 
   final filters = SearchBarViewDelegate.generateFilters(searchPattern);
-  return items?.where((element) {
-    if (filters == null || filters.isEmpty) return true;
+  return items.where((element) {
+    if (filters.isEmpty) return true;
     for (final filter in filters) {
       if (!filter(element)) return false;
     }
     return true;
-  })?.toList();
+  }).toList();
 });
 
 final currentStatisticsProvider = Provider<Statistics>((ref) {
   final items = ref.watch(parsingProvider);
-  return Statistics()..addItems(items.data.value);
+  return Statistics()..addItems(items.data?.value);
 });

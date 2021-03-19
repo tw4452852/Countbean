@@ -12,7 +12,7 @@ class TransactionAddWidget extends StatefulWidget {
   final Function(List) onSave;
 
   @override
-  TransactionAddWidget({Key key, @required this.onSave}) : super(key: key);
+  TransactionAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _TransactionAddWidgetState createState() => _TransactionAddWidgetState();
@@ -20,7 +20,7 @@ class TransactionAddWidget extends StatefulWidget {
 
 class _TransactionAddWidgetState extends State<TransactionAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
-  String desc, payee, currency;
+  String? desc, payee, currency;
   List<List> froms = [[]..length = 2];
   List<List> tos = [[]..length = 2];
   List<String> ts = [];
@@ -55,7 +55,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
                     ? null
                     : Cost(
                         amount: e[1],
-                        currency: currency,
+                        currency: currency!,
                       )));
           });
 
@@ -153,7 +153,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
               findSuggestions: (String query) {
                 final suggestions =
                     tags.where((e) => e.contains(query)).toList();
-                if (query != null && query.isNotEmpty) {
+                if (query.isNotEmpty) {
                   suggestions.add(query);
                 }
                 return suggestions;
@@ -184,7 +184,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
               findSuggestions: (String query) {
                 final suggestions =
                     links.where((e) => e.contains(query)).toList();
-                if (query != null && query.isNotEmpty) {
+                if (query.isNotEmpty) {
                   suggestions.add(query);
                 }
                 return suggestions;

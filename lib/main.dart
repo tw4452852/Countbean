@@ -13,6 +13,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ext_storage/ext_storage.dart';
+import 'package:petitparser/petitparser.dart';
 
 import './parser/widget.dart';
 import './parser/parser.dart';
@@ -56,12 +57,12 @@ class MyHomePage extends HookWidget {
   }
 }
 
-Future<File> createFile(context) async {
+Future<File?> createFile(context) async {
   final directory = await getApplicationDocumentsDirectory();
   final name = await showDialog<String>(
       context: context,
       builder: (context) {
-        String input;
+        String? input;
         return AlertDialog(
           scrollable: true,
           title: const Text('Create a new sheet'),
@@ -78,7 +79,7 @@ Future<File> createFile(context) async {
             TextButton(
               child: const Text("OK"),
               onPressed: () {
-                Navigator.of(context).pop(input);
+                Navigator.of(context).pop(input ??= "");
               },
             ),
           ],
@@ -114,10 +115,12 @@ class Startup extends HookWidget {
               final f = await FilePicker.platform.pickFiles();
               final d = await getApplicationDocumentsDirectory();
               if (f != null) {
-                final p = path.join(d.path,
-                    '${path.basenameWithoutExtension(f.files.single.path)}.cb');
+                final filePath = f.files.first.path;
+                if (filePath == null) return null;
+                final p = path.join(
+                    d.path, '${path.basenameWithoutExtension(filePath)}.cb');
                 context.read(currentFileProvider).state =
-                    await File(f.files.single.path).copy(p);
+                    await File(filePath).copy(p);
                 context.read(sheetsProvider).add(p);
               }
             },
@@ -131,12 +134,12 @@ class Startup extends HookWidget {
 class Home extends HookWidget {
   @override
   Widget build(context) {
-    final currentFile = useProvider(currentFileProvider);
+    final currentFile = useProvider(currentFileProvider).state;
     return Scaffold(
       appBar: AppBar(
-        title: currentFile.state == null
+        title: currentFile == null
             ? const Text('Home')
-            : Text(path.basenameWithoutExtension(currentFile.state.path)),
+            : Text(path.basenameWithoutExtension(currentFile.path)),
         actions: [
           Consumer(
             builder: (context, watch, child) {
@@ -159,7 +162,7 @@ class Home extends HookWidget {
                   IconButton(
                     icon: const Icon(Icons.search),
                     onPressed: () async {
-                      final pattern = await showSearch<String>(
+                      final pattern = await showSearch<String?>(
                         context: context,
                         delegate: SearchBarViewDelegate(),
                         query: searchPattern.state,
@@ -175,13 +178,13 @@ class Home extends HookWidget {
           ),
         ],
       ),
-      body: currentFile.state == null ? Startup() : Parsing(),
+      body: currentFile == null ? Startup() : Parsing(),
       drawer: MyDrawer(),
-      floatingActionButton: currentFile.state == null
+      floatingActionButton: currentFile == null
           ? null
           : FloatingActionButton(
               onPressed: () async {
-                final List result = await Navigator.push(
+                final List? result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddWidget(),
@@ -214,16 +217,17 @@ class MyDrawer extends HookWidget {
             child: FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
+                final data = snapshot.data;
                 if (snapshot.hasError) {
                   return Center(
                     child: Text('Error: ${snapshot.error}'),
                   );
-                } else if (snapshot.hasData) {
-                  final version = snapshot.data.version;
-                  final buildNumber = snapshot.data.buildNumber;
+                } else if (data != null) {
+                  final version = data.version;
+                  final buildNumber = data.buildNumber;
                   return Center(
                     child: Text(
-                        "Version:$version${buildNumber != null && buildNumber.isNotEmpty ? '+$buildNumber' : ''}"),
+                        "Version:$version${buildNumber.isNotEmpty ? '+$buildNumber' : ''}"),
                   );
                 } else {
                   return Center(
@@ -245,7 +249,7 @@ class MyDrawer extends HookWidget {
               final name = await showDialog<String>(
                   context: context,
                   builder: (context) {
-                    String input;
+                    String? input;
                     return AlertDialog(
                       scrollable: true,
                       title: const Text('Create a new sheet'),
@@ -301,16 +305,17 @@ class MyDrawer extends HookWidget {
                     );
                   },
                 );
-                if (confirm) {
+                if (confirm != null && confirm == true) {
                   final s = context.read(sheetsProvider);
                   s.del(file.path);
+                  final first = s.first;
                   context.read(currentFileProvider).state =
-                      s.first == null ? null : File(s.first);
+                      first == null ? null : File(first);
                   Navigator.pop(context);
                 }
               },
             ),
-            if (items != null && items.isNotEmpty)
+            if (items.isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.arrow_upward),
                 title: const Text('Export'),
@@ -321,7 +326,7 @@ class MyDrawer extends HookWidget {
                     if (!permission.isGranted) {
                       return;
                     }
-                    root = await ExtStorage.getExternalStorageDirectory();
+                    root = (await ExtStorage.getExternalStorageDirectory())!;
                   } else {
                     root = (await getApplicationDocumentsDirectory()).path;
                   }
@@ -339,8 +344,9 @@ class MyDrawer extends HookWidget {
                             children: [
                               GestureDetector(
                                 onTap: () async {
-                                  root = await FilePicker.platform
+                                  final p = await FilePicker.platform
                                       .getDirectoryPath();
+                                  if (p != null) root = p;
                                 },
                                 child: Text(
                                   root,
@@ -395,14 +401,15 @@ class MyDrawer extends HookWidget {
                     barrierDismissible: false,
                     builder: (context) {
                       return FutureBuilder<List>(
-                        future: src.files.single.readStream.join().then(
+                        future: src.files.single.readStream?.join().then(
                             (data) => BeancountParser().parse(data).value),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
                             return AlertDialog(
                               scrollable: true,
                               contentPadding: EdgeInsets.only(top: 10),
-                              content: parserException(snapshot.error),
+                              content: parserException(
+                                  snapshot.error as ParserException),
                               actions: <Widget>[
                                 TextButton(
                                   child: const Text("OK"),
@@ -490,18 +497,17 @@ class Parsing extends HookWidget {
                 height: 60,
               ),
             ),
-        error: (err, stack) => parserException(err));
+        error: (err, stack) => parserException(err as ParserException));
   }
 }
 
 class Items extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
+    final showedItems = useProvider(currentDisplayedItemsProvider)!.reversed;
     final scrollController = useScrollController();
 
     return WidgetsVisibilityProvider(
-      condition: (_) => null,
       child: Column(
         children: [
           AccountsStatistics(scrollController),
@@ -528,13 +534,14 @@ class Items extends HookWidget {
 
 class AccountsStatistics extends HookWidget {
   final ScrollController scrollController;
-  AccountsStatistics(this.scrollController, {Key key}) : super(key: key);
-
+  AccountsStatistics(this.scrollController, {Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     final accounts = useProvider(statisticsAccountsProvider);
     final items = useProvider(currentDisplayedItemsProvider);
     final s = context.read(currentStatisticsProvider);
+
+    if (items == null) return SizedBox.shrink();
 
     return GestureDetector(
       onDoubleTap: () => scrollController.animateTo(
@@ -571,7 +578,10 @@ class AccountsStatistics extends HookWidget {
                     previous.positionDataList.map((e) => e.data).toList(),
                     current.positionDataList.map((e) => e.data).toList()),
                 builder: (context, event) {
-                  int endIndex = event.positionDataList.first.data;
+                  final positions = event.positionDataList;
+                  int endIndex = positions.isNotEmpty
+                      ? event.positionDataList.first.data
+                      : items.length;
                   if (endIndex > items.length) {
                     endIndex = items.length;
                   }
@@ -611,7 +621,7 @@ class AccountsStatistics extends HookWidget {
 final _currentItem = ScopedProvider<Item>(null);
 
 class ItemWidget extends HookWidget {
-  const ItemWidget({Key key}) : super(key: key);
+  const ItemWidget({Key? key}) : super(key: key);
 
   static const _maxLines = 3;
   @override
@@ -645,6 +655,7 @@ class ItemWidget extends HookWidget {
                   trailing: Builder(
                     builder: (context) {
                       final controller = ExpandableController.of(context);
+                      if (controller == null) return SizedBox.shrink();
                       return IconButton(
                         icon: Icon(controller.expanded
                             ? Icons.expand_less

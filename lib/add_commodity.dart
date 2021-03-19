@@ -7,7 +7,7 @@ class CommodityAddWidget extends StatefulWidget {
   final Function(List) onSave;
 
   @override
-  CommodityAddWidget({Key key, @required this.onSave}) : super(key: key);
+  CommodityAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _CommodityAddWidgetState createState() => _CommodityAddWidgetState();
@@ -15,7 +15,7 @@ class CommodityAddWidget extends StatefulWidget {
 
 class _CommodityAddWidgetState extends State<CommodityAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
-  String c;
+  String? c;
 
   @override
   bool get wantKeepAlive => true;
@@ -29,7 +29,7 @@ class _CommodityAddWidgetState extends State<CommodityAddWidget>
         widget.onSave([
           Commodity(
             date: date,
-            currency: c,
+            currency: c!,
           )
         ]);
       },

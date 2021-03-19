@@ -6,7 +6,7 @@ class OptionAddWidget extends StatefulWidget {
   final Function(dynamic) onSave;
 
   @override
-  OptionAddWidget({Key key, @required this.onSave}) : super(key: key);
+  OptionAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _OptionAddWidgetState createState() => _OptionAddWidgetState();

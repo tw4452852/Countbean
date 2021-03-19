@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class Sheets extends StateNotifier<List<String>> {
-  Sheets([List<String> initiSheets]) : super(initiSheets ?? []);
+  Sheets([List<String>? initiSheets]) : super(initiSheets ?? []);
 
   Future<File> add(String path) async {
     final f = File(path);
@@ -33,13 +33,12 @@ class Sheets extends StateNotifier<List<String>> {
     return true;
   }
 
-  Future<File> rename(String o, String n) async {
+  Future<File?> rename(String o, String n) async {
     final i = state.indexOf(o);
     if (i == -1) {
       return null;
     }
 
-    
     state = [
       n,
       ...state.sublist(0, i),
@@ -51,7 +50,7 @@ class Sheets extends StateNotifier<List<String>> {
     });
   }
 
-  Future<File> open(String p) async {
+  Future<File?> open(String p) async {
     final i = state.indexOf(p);
     if (i == -1) {
       return null;
@@ -60,14 +59,14 @@ class Sheets extends StateNotifier<List<String>> {
     state = [
       p,
       ...state.sublist(0, i),
-      ...state.sublist(i+1),
+      ...state.sublist(i + 1),
     ];
     final f = File(p);
 
     return f.setLastAccessed(DateTime.now()).then((_) => f);
   }
 
-  bool get isEmpty => state == null || state.isEmpty;
-  String get first => isEmpty ? null : state.first;
+  bool get isEmpty => state.isEmpty;
+  String? get first => isEmpty ? null : state.first;
   void reset(List<String> s) => state = s;
 }

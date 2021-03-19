@@ -10,7 +10,7 @@ class BalanceAddWidget extends StatefulWidget {
   final Function(List) onSave;
 
   @override
-  BalanceAddWidget({Key key, @required this.onSave}) : super(key: key);
+  BalanceAddWidget({Key? key, required this.onSave}) : super(key: key);
 
   @override
   _BalanceAddWidgetState createState() => _BalanceAddWidgetState();
@@ -18,10 +18,10 @@ class BalanceAddWidget extends StatefulWidget {
 
 class _BalanceAddWidgetState extends State<BalanceAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
-  String account, currency;
-  double amount;
+  String? account, currency;
+  double? amount;
   bool withPad = false;
-  String padAccount;
+  String? padAccount;
 
   @override
   bool get wantKeepAlive => true;
@@ -39,15 +39,15 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
           if (withPad)
             Pad(
               date: date.subtract(const Duration(days: 1)),
-              account: account,
-              padAccount: padAccount,
+              account: account!,
+              padAccount: padAccount!,
             ),
           Balance(
             date: date,
-            account: account,
+            account: account!,
             cost: Cost(
-              amount: amount,
-              currency: currency,
+              amount: amount!,
+              currency: currency!,
             ),
           ),
         ]);
@@ -88,12 +88,12 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
             return null;
           },
           onSaved: (v) {
-            amount = double.parse(v);
+            if (v != null) amount = double.parse(v);
           },
         ),
         TextFormFieldWithSuggestion(
           name: 'Currency',
-          initialValue: currencies.isEmpty ? null : currencies.first,
+          initialValue: currencies.isEmpty ? "" : currencies.first,
           validator: (v) {
             if (v == null || v.isEmpty) {
               return "Currency is empty";
@@ -110,9 +110,11 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
             Checkbox(
               value: withPad,
               onChanged: (v) {
-                setState(() {
-                  withPad = v;
-                });
+                if (v != null) {
+                  setState(() {
+                    withPad = v;
+                  });
+                }
               },
             ),
             const Text('Insert pad'),

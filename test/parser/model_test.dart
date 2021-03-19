@@ -80,7 +80,7 @@ void main() {
           Posting(account: 'A', cost: Cost(amount: 10.0, currency: 'MONEY')),
           Posting(account: 'B'),
         ],
-        tags: ['z', 'a', 'b', null, '_0', 'd', '5', 'ç'],
+        tags: ['z', 'a', 'b', '_0', 'd', '5', 'ç'],
       );
       final String expected = '''
 2018-01-01 * #z #a #b #_0 #d #5 #ç
@@ -96,7 +96,7 @@ void main() {
           Posting(account: 'A', cost: Cost(amount: 10.0, currency: 'MONEY')),
           Posting(account: 'B'),
         ],
-        links: ['z', 'a', 'b', null, '_0', 'd', '5', 'ç'],
+        links: ['z', 'a', 'b', '_0', 'd', '5', 'ç'],
       );
       final String expected = '''
 2018-01-01 * ^z ^a ^b ^_0 ^d ^5 ^ç
