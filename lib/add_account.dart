@@ -75,30 +75,35 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
           },
           suggestions: accounts,
         ),
-        ChipsInput<String>(
-          decoration: InputDecoration(
-            labelText: 'Currencies',
+        Builder(
+          builder: (context) => ChipsInput<String>(
+            decoration: InputDecoration(
+              labelText: 'Currencies',
+            ),
+            findSuggestions: (String query) {
+              final suggestions =
+                  currencies.where((e) => e.contains(query)).toList();
+              if (query != null && query.isNotEmpty) {
+                suggestions.add(query.toUpperCase());
+              }
+              return suggestions;
+            },
+            onEditingComplete: () {
+              FocusScope.of(context).nextFocus();
+            },
+            suggestionBuilder: (context, currency) {
+              return ListTile(
+                title: Text(currency),
+              );
+            },
+            chipBuilder: (context, state, currency) {
+              return InputChip(
+                label: Text(currency),
+                onDeleted: () => state.deleteChip(currency),
+              );
+            },
+            onChanged: (l) => cs = l,
           ),
-          findSuggestions: (String query) {
-            final suggestions =
-                currencies.where((e) => e.contains(query)).toList();
-            if (query != null && query.isNotEmpty) {
-              suggestions.add(query.toUpperCase());
-            }
-            return suggestions;
-          },
-          suggestionBuilder: (context, currency) {
-            return ListTile(
-              title: Text(currency),
-            );
-          },
-          chipBuilder: (context, state, currency) {
-            return InputChip(
-              label: Text(currency),
-              onDeleted: () => state.deleteChip(currency),
-            );
-          },
-          onChanged: (l) => cs = l,
         ),
       ],
     );

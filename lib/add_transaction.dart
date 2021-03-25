@@ -142,55 +142,66 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
             },
           ),
           SizedBox(height: 10),
-          ChipsInput<String>(
-            decoration: InputDecoration(
-              labelText: 'Tags',
+          Builder(
+            builder: (context) => ChipsInput<String>(
+              decoration: InputDecoration(
+                labelText: 'Tags',
+              ),
+              onEditingComplete: () {
+                FocusScope.of(context).nextFocus();
+              },
+              findSuggestions: (String query) {
+                final suggestions =
+                    tags.where((e) => e.contains(query)).toList();
+                if (query != null && query.isNotEmpty) {
+                  suggestions.add(query);
+                }
+                return suggestions;
+              },
+              suggestionBuilder: (context, tag) {
+                return ListTile(
+                  title: Text(tag),
+                );
+              },
+              chipBuilder: (context, state, tag) {
+                return InputChip(
+                  label: Text('#$tag'),
+                  onDeleted: () => state.deleteChip(tag),
+                );
+              },
+              onChanged: (l) => ts = l,
             ),
-            findSuggestions: (String query) {
-              final suggestions = tags.where((e) => e.contains(query)).toList();
-              if (query != null && query.isNotEmpty) {
-                suggestions.add(query);
-              }
-              return suggestions;
-            },
-            suggestionBuilder: (context, tag) {
-              return ListTile(
-                title: Text(tag),
-              );
-            },
-            chipBuilder: (context, state, tag) {
-              return InputChip(
-                label: Text('#$tag'),
-                onDeleted: () => state.deleteChip(tag),
-              );
-            },
-            onChanged: (l) => ts = l,
           ),
           SizedBox(height: 10),
-          ChipsInput<String>(
-            decoration: InputDecoration(
-              labelText: 'Links',
+          Builder(
+            builder: (context) => ChipsInput<String>(
+              decoration: InputDecoration(
+                labelText: 'Links',
+              ),
+              onEditingComplete: () {
+                FocusScope.of(context).nextFocus();
+              },
+              findSuggestions: (String query) {
+                final suggestions =
+                    links.where((e) => e.contains(query)).toList();
+                if (query != null && query.isNotEmpty) {
+                  suggestions.add(query);
+                }
+                return suggestions;
+              },
+              suggestionBuilder: (context, link) {
+                return ListTile(
+                  title: Text(link),
+                );
+              },
+              chipBuilder: (context, state, link) {
+                return InputChip(
+                  label: Text('^$link'),
+                  onDeleted: () => state.deleteChip(link),
+                );
+              },
+              onChanged: (l) => ls = l,
             ),
-            findSuggestions: (String query) {
-              final suggestions =
-                  links.where((e) => e.contains(query)).toList();
-              if (query != null && query.isNotEmpty) {
-                suggestions.add(query);
-              }
-              return suggestions;
-            },
-            suggestionBuilder: (context, link) {
-              return ListTile(
-                title: Text(link),
-              );
-            },
-            chipBuilder: (context, state, link) {
-              return InputChip(
-                label: Text('^$link'),
-                onDeleted: () => state.deleteChip(link),
-              );
-            },
-            onChanged: (l) => ls = l,
           ),
           for (var l in [froms, tos]) ...[
             for (var i = 0; i < l.length; i++)
