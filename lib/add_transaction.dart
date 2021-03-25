@@ -214,6 +214,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
                   Expanded(
                     child: TextFormFieldWithSuggestion(
                       name: "Account",
+                      goUp: true,
                       inputDecoration: InputDecoration(
                         labelText: 'Account',
                       ),

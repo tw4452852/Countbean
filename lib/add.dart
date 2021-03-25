@@ -216,6 +216,7 @@ class TextFormFieldWithSuggestion extends HookWidget {
   final TextEditingController controller;
   final bool autofocus;
   final TextCapitalization textCapitalization;
+  final bool goUp;
 
   @override
   TextFormFieldWithSuggestion({
@@ -229,6 +230,7 @@ class TextFormFieldWithSuggestion extends HookWidget {
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.none,
     InputDecoration inputDecoration,
+    this.goUp = false,
   })  : inputDecoration = inputDecoration ?? InputDecoration(labelText: name),
         super(key: key);
 
@@ -266,6 +268,7 @@ class TextFormFieldWithSuggestion extends HookWidget {
           title: Text(suggestion),
         );
       },
+      direction: goUp ? AxisDirection.up : AxisDirection.down,
     );
   }
 }
