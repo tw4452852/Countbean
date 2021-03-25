@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:ext_storage/ext_storage.dart';
 
 import './parser/widget.dart';
 import './parser/parser.dart';
@@ -314,14 +315,16 @@ class MyDrawer extends HookWidget {
                 leading: const Icon(Icons.arrow_upward),
                 title: const Text('Export'),
                 onTap: () async {
+                  String root;
                   if (Platform.isAndroid) {
                     final permission = await Permission.storage.request();
                     if (!permission.isGranted) {
                       return;
                     }
+                    root = await ExtStorage.getExternalStorageDirectory();
+                  } else {
+                    root = (await getApplicationDocumentsDirectory()).path;
                   }
-                  final String root =
-                      await FilePicker.platform.getDirectoryPath();
 
                   final dest = await showDialog<String>(
                       context: ctx,
@@ -334,10 +337,16 @@ class MyDrawer extends HookWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                root,
-                                style: TextStyle(
-                                  color: Colors.grey,
+                              GestureDetector(
+                                onTap: () async {
+                                  root = await FilePicker.platform
+                                      .getDirectoryPath();
+                                },
+                                child: Text(
+                                  root,
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
                               TextFormField(
