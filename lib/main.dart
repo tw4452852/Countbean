@@ -320,47 +320,55 @@ class MyDrawer extends HookWidget {
                 leading: const Icon(Icons.arrow_upward),
                 title: const Text('Export'),
                 onTap: () async {
-                  String root;
+                  String defaultDir;
                   if (Platform.isAndroid) {
                     final permission = await Permission.storage.request();
                     if (!permission.isGranted) {
                       return;
                     }
-                    root = (await ExtStorage.getExternalStorageDirectory())!;
+                    defaultDir = path.join(
+                      (await ExtStorage.getExternalStorageDirectory())!,
+                      'cb',
+                    );
                   } else {
-                    root = (await getApplicationDocumentsDirectory()).path;
+                    defaultDir =
+                        (await getApplicationDocumentsDirectory()).path;
                   }
 
                   final dest = await showDialog<String>(
                       context: ctx,
                       builder: (context) {
-                        String p = '${path.basename(file.path)}';
+                        String name = '${path.basename(file.path)}';
+                        String dir = defaultDir;
                         return AlertDialog(
                           scrollable: true,
                           title: const Text('Export to:'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  final p = await FilePicker.platform
-                                      .getDirectoryPath();
-                                  if (p != null) root = p;
-                                },
-                                child: Text(
-                                  root,
-                                  style: TextStyle(
-                                    color: Colors.grey,
+                          content: StatefulBuilder(
+                            builder: (context, setState) => Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    final p = await FilePicker.platform
+                                        .getDirectoryPath();
+                                    if (p != null && p != dir)
+                                      setState(() => dir = p);
+                                  },
+                                  child: Text(
+                                    "Dir: $dir",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              TextFormField(
-                                autofocus: true,
-                                initialValue: p,
-                                onChanged: (v) => p = v,
-                              ),
-                            ],
+                                TextFormField(
+                                  autofocus: true,
+                                  initialValue: name,
+                                  onChanged: (v) => setState(() => name = v),
+                                ),
+                              ],
+                            ),
                           ),
                           actions: <Widget>[
                             TextButton(
@@ -370,22 +378,22 @@ class MyDrawer extends HookWidget {
                             TextButton(
                               child: const Text("OK"),
                               onPressed: () {
-                                Navigator.of(context).pop(p);
+                                Navigator.of(context).pop(
+                                    name.isEmpty ? null : path.join(dir, name));
                               },
                             ),
                           ],
                         );
                       });
-                  if (dest != null && dest.isNotEmpty) {
-                    final p = path.join(root, dest);
-                    await File(p).create(recursive: true);
-                    await file.copy(p);
+                  if (dest != null) {
+                    await File(dest).create(recursive: true);
+                    await file.copy(dest);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context)
                       ..removeCurrentSnackBar()
                       ..showSnackBar(SnackBar(
                         duration: const Duration(seconds: 1),
-                        content: Text('Exported to $p'),
+                        content: Text('Exported to $dest'),
                       ));
                   }
                 },
