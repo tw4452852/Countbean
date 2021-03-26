@@ -1,7 +1,6 @@
 import 'package:countbean/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:chips_input/chips_input.dart';
 
 import './add.dart';
 import './parser/model.dart';
@@ -76,35 +75,10 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
           },
           suggestions: accounts,
         ),
-        Builder(
-          builder: (context) => ChipsInput<String>(
-            decoration: InputDecoration(
-              labelText: 'Currencies',
-            ),
-            findSuggestions: (String query) {
-              final suggestions =
-                  currencies.where((e) => e.contains(query)).toList();
-              if (query.isNotEmpty) {
-                suggestions.add(query.toUpperCase());
-              }
-              return suggestions;
-            },
-            onEditingComplete: () {
-              FocusScope.of(context).nextFocus();
-            },
-            suggestionBuilder: (context, currency) {
-              return ListTile(
-                title: Text(currency),
-              );
-            },
-            chipBuilder: (context, state, currency) {
-              return InputChip(
-                label: Text(currency),
-                onDeleted: () => state.deleteChip(currency),
-              );
-            },
-            onChanged: (l) => cs = l,
-          ),
+        Chips(
+          name: 'Currency',
+          suggestions: currencies,
+          result: cs,
         ),
       ],
     );

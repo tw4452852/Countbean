@@ -2,7 +2,6 @@ import 'package:countbean/providers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:chips_input/chips_input.dart';
 
 import './parser/model.dart';
 import './add.dart';
@@ -142,67 +141,6 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
             },
           ),
           SizedBox(height: 10),
-          Builder(
-            builder: (context) => ChipsInput<String>(
-              decoration: InputDecoration(
-                labelText: 'Tags',
-              ),
-              onEditingComplete: () {
-                FocusScope.of(context).nextFocus();
-              },
-              findSuggestions: (String query) {
-                final suggestions =
-                    tags.where((e) => e.contains(query)).toList();
-                if (query.isNotEmpty) {
-                  suggestions.add(query);
-                }
-                return suggestions;
-              },
-              suggestionBuilder: (context, tag) {
-                return ListTile(
-                  title: Text(tag),
-                );
-              },
-              chipBuilder: (context, state, tag) {
-                return InputChip(
-                  label: Text('#$tag'),
-                  onDeleted: () => state.deleteChip(tag),
-                );
-              },
-              onChanged: (l) => ts = l,
-            ),
-          ),
-          SizedBox(height: 10),
-          Builder(
-            builder: (context) => ChipsInput<String>(
-              decoration: InputDecoration(
-                labelText: 'Links',
-              ),
-              onEditingComplete: () {
-                FocusScope.of(context).nextFocus();
-              },
-              findSuggestions: (String query) {
-                final suggestions =
-                    links.where((e) => e.contains(query)).toList();
-                if (query.isNotEmpty) {
-                  suggestions.add(query);
-                }
-                return suggestions;
-              },
-              suggestionBuilder: (context, link) {
-                return ListTile(
-                  title: Text(link),
-                );
-              },
-              chipBuilder: (context, state, link) {
-                return InputChip(
-                  label: Text('^$link'),
-                  onDeleted: () => state.deleteChip(link),
-                );
-              },
-              onChanged: (l) => ls = l,
-            ),
-          ),
           for (var l in [froms, tos]) ...[
             for (var i = 0; i < l.length; i++)
               Row(
@@ -285,6 +223,18 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
               ),
             SizedBox(height: 20),
           ],
+          SizedBox(height: 10),
+          Chips(
+            name: 'Tag',
+            suggestions: tags.toList(),
+            result: ts,
+          ),
+          SizedBox(height: 10),
+          Chips(
+            name: 'Link',
+            suggestions: links.toList(),
+            result: ls,
+          ),
         ],
       ),
     );

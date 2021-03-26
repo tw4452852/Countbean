@@ -281,3 +281,95 @@ class TextFormFieldWithSuggestion extends HookWidget {
     );
   }
 }
+
+class Chips extends HookWidget {
+  final String name;
+  final List<String> suggestions;
+  final List<String>? result;
+
+  Chips({
+    Key? key,
+    required this.name,
+    this.suggestions = const [],
+    this.result,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = useState<Set<String>>({});
+    useValueChanged<Set<String>, Null>(chips.value, (_, __) {
+      if (result != null) {
+        result!.replaceRange(0, result!.length, chips.value);
+      }
+    });
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide()),
+      ),
+      child: ListTile(
+        leading: Text("$name:"),
+        title: chips.value.isEmpty
+            ? const Text('')
+            : Wrap(
+                children: chips.value
+                    .map((e) => Chip(
+                        label: Text(e),
+                        onDeleted: () {
+                          chips.value.remove(e);
+                          chips.value = Set.from(chips.value);
+                        }))
+                    .toList(),
+              ),
+        subtitle: suggestions.isEmpty
+            ? null
+            : Wrap(
+                children: suggestions
+                    .map((e) => ActionChip(
+                          label: Text(e),
+                          onPressed: () {
+                            chips.value.add(e);
+                            chips.value = Set.from(chips.value);
+                          },
+                        ))
+                    .toList(),
+              ),
+        trailing: IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () async {
+            final c = await showDialog<String>(
+              context: context,
+              builder: (context) {
+                String? input;
+                return AlertDialog(
+                  scrollable: true,
+                  title: Text('Create a new $name'),
+                  content: TextField(
+                    autofocus: true,
+                    onChanged: (v) => input = v,
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text("CANCEL"),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    TextButton(
+                      child: const Text("OK"),
+                      onPressed: () {
+                        Navigator.of(context).pop(input ??= "");
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (c != null && name.isNotEmpty) {
+              chips.value.add(c);
+              chips.value = Set.from(chips.value);
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
