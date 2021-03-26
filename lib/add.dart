@@ -308,6 +308,7 @@ class Chips extends HookWidget {
         border: Border(bottom: BorderSide()),
       ),
       child: ListTile(
+        contentPadding: EdgeInsets.zero,
         leading: Text("$name:"),
         title: chips.value.isEmpty
             ? const Text('')
