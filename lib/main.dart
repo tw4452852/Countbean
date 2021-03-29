@@ -594,8 +594,7 @@ class AccountsStatistics extends HookWidget {
                     endIndex = items.length;
                   }
 
-                  final validItems =
-                      items.sublist(0, endIndex).map((e) => e.content);
+                  final validItems = items.sublist(0, endIndex);
                   return Wrap(
                     children: accounts.state.map(
                       (a) {

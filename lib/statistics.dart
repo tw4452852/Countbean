@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import './parser/model.dart';
+import './item.dart';
 
 class Statistics {
   List<Transaction> _transactions = [];
@@ -47,7 +48,7 @@ class Statistics {
           );
   }
 
-  List<Cost> balance(String account, Iterable items) {
+  List<Cost> balance(String account, Iterable<Item> items) {
     final List<Cost> ret = [];
 
     int getSlot(String currency) {
@@ -61,7 +62,7 @@ class Statistics {
     }
 
     for (var i = 0; i < items.length; i++) {
-      final e = items.elementAt(i);
+      final e = items.elementAt(i).content;
 
       if (e is Transaction) {
         final fillCost = _computeCosts(e.postings);
@@ -87,8 +88,9 @@ class Statistics {
     return ret;
   }
 
-  addItems(Iterable? items) {
-    items?.forEach((e) {
+  addItems(Iterable<Item>? items) {
+    items?.forEach((item) {
+      final e = item.content;
       if (e is AccountAction) {
         accounts.add(e.account);
         e.currencies?.forEach((e) => currencies.add(e));
@@ -170,8 +172,9 @@ class Statistics {
     });
   }
 
-  delItems(Iterable items) {
-    items.forEach((e) {
+  delItems(Iterable<Item> items) {
+    items.forEach((item) {
+      final e = item.content;
       if (e is Pad) {
         _pads.remove(e);
       }

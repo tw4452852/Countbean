@@ -83,5 +83,5 @@ final currentDisplayedItemsProvider = Provider<List<Item>?>((ref) {
 
 final currentStatisticsProvider = Provider<Statistics>((ref) {
   final items = ref.watch(parsingProvider);
-  return Statistics()..addItems(items.data?.value);
+  return Statistics()..addItems(items.data?.value?.map((e) => Item(e)));
 });

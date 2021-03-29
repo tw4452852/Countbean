@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:countbean/statistics.dart';
 import 'package:countbean/parser/model.dart';
+import 'package:countbean/item.dart';
 
 void main() {
   group('Statistics.addItems()', () {
@@ -19,7 +20,7 @@ void main() {
           key: "kk",
           value: "vv",
         ),
-      ]);
+      ].map((e) => Item(e)));
       expect(s.eventTypes, equals({'k', 'kk'}));
       expect(s.eventValues, equals({'v', 'vv'}));
     });
@@ -38,7 +39,7 @@ void main() {
           action: "close",
           account: "a",
         ),
-      ]);
+      ].map((e) => Item(e)));
       expect(s.accounts, equals({'a'}));
       expect(s.currencies, equals({'c'}));
     });
@@ -66,7 +67,7 @@ void main() {
             Posting(account: 'a', cost: Cost(amount: -10, currency: 'CNY')),
           ],
         ),
-      ]);
+      ].map((e) => Item(e)));
 
       expect(s.accounts, equals({'a', 'b'}));
       expect(s.tags, equals({'t1', 't2'}));
@@ -121,7 +122,7 @@ void main() {
             Posting(account: 'a', cost: Cost(amount: 10, currency: 'USD')),
           ],
         ),
-      ];
+      ].map((e) => Item(e));
 
       s.addItems(items);
 
@@ -172,7 +173,7 @@ void main() {
             Posting(account: 'a'),
           ],
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -227,7 +228,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -282,7 +283,7 @@ void main() {
           account: 'a',
           padAccount: 'b',
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -342,7 +343,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -402,7 +403,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e)).toList();
       s.addItems(items);
       final removed = items.removeAt(1);
       s.delItems([removed]);
@@ -464,7 +465,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e)).toList();
       s.addItems(items);
       final removed = items.removeAt(4);
       s.delItems([removed]);
@@ -526,7 +527,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((content) => Item(content)).toList();
       s.addItems(items);
       final removed = items.removeAt(3);
       s.delItems([removed]);
@@ -582,7 +583,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -627,7 +628,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e));
       s.addItems(items);
 
       expect(
@@ -689,7 +690,7 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
-      ];
+      ].map((e) => Item(e)).toList();
       s.addItems(items);
 
       expect(
@@ -703,13 +704,13 @@ void main() {
             Cost(amount: -20, currency: 'CNY'),
           ]));
 
-      final item = Transaction(
+      final item = Item(Transaction(
         date: DateTime(2020, 1, 4),
         postings: [
           Posting(account: 'b', cost: Cost(amount: 5, currency: 'CNY')),
           Posting(account: 'a'),
         ],
-      );
+      ));
       s.addItems([item]);
       expect(
           s.balance('a', [...items, item]),
@@ -722,8 +723,8 @@ void main() {
             Cost(amount: -15, currency: 'CNY'),
           ]));
 
-      s.addItems([item.copyWith(date: DateTime(2020, 1, 2))]);
-      items.insert(1, item.copyWith(date: DateTime(2020, 1, 2)));
+      s.addItems([Item(item.content.copyWith(date: DateTime(2020, 1, 2)))]);
+      items.insert(1, Item(item.content.copyWith(date: DateTime(2020, 1, 2))));
       expect(
           s.balance('a', items),
           equals([

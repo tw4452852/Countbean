@@ -124,6 +124,7 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
           visible: withPad,
           child: TextFormFieldWithSuggestion(
             name: "Pad Account",
+            goUp: true,
             suggestions: accounts,
             textCapitalization: TextCapitalization.words,
             validator: (v) {
