@@ -642,12 +642,10 @@ packages:
   widgets_visibility_provider:
     dependency: "direct main"
     description:
-      path: "."
-      ref: type_casting_exception
-      resolved-ref: d41a8b1a60dc24c0fc2bd30b94f6088b56b9b865
-      url: "https://github.com/tw4452852/widgets_visibility_provider"
-    source: git
-    version: "3.0.0-nullsafety.0"
+      name: widgets_visibility_provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   win32:
     dependency: transitive
     description:
