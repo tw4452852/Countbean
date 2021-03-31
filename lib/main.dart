@@ -47,7 +47,7 @@ class MyHomePage extends HookWidget {
     return loading.when(
         data: (_) => Home(),
         loading: () => Center(
-              child: SizedBox(
+              child: const SizedBox(
                 child: CircularProgressIndicator(),
                 width: 60,
                 height: 60,
@@ -135,6 +135,8 @@ class Home extends HookWidget {
   @override
   Widget build(context) {
     final currentFile = useProvider(currentFileProvider).state;
+    final parsing = useProvider(parsingProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: currentFile == null
@@ -182,21 +184,24 @@ class Home extends HookWidget {
       drawer: MyDrawer(),
       floatingActionButton: currentFile == null
           ? null
-          : FloatingActionButton(
-              onPressed: () async {
-                final List? result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddWidget(),
-                  ),
-                );
-                if (result != null && result.isNotEmpty) {
-                  context
-                      .read(currentItemsProvider)
-                      .add(result.map((e) => Item(e)));
-                }
-              },
-              child: const Icon(Icons.create),
+          : parsing.maybeWhen(
+              orElse: () => null,
+              data: (_) => FloatingActionButton(
+                onPressed: () async {
+                  final List? result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddWidget(),
+                    ),
+                  );
+                  if (result != null && result.isNotEmpty) {
+                    context
+                        .read(currentItemsProvider)
+                        .add(result.map((e) => Item(e)));
+                  }
+                },
+                child: const Icon(Icons.create),
+              ),
             ),
     );
   }
@@ -231,7 +236,7 @@ class MyDrawer extends HookWidget {
                   );
                 } else {
                   return Center(
-                    child: SizedBox(
+                    child: const SizedBox(
                       child: CircularProgressIndicator(),
                       width: 60,
                       height: 60,
@@ -416,7 +421,7 @@ class MyDrawer extends HookWidget {
                             return AlertDialog(
                               scrollable: true,
                               contentPadding: EdgeInsets.only(top: 10),
-                              content: parserException(
+                              content: ParsingError(
                                   snapshot.error as ParserException),
                               actions: <Widget>[
                                 TextButton(
@@ -434,7 +439,7 @@ class MyDrawer extends HookWidget {
                             return SimpleDialog(
                               children: [
                                 Center(
-                                  child: SizedBox(
+                                  child: const SizedBox(
                                     child: CircularProgressIndicator(),
                                     width: 60,
                                     height: 60,
@@ -497,15 +502,17 @@ class Parsing extends HookWidget {
     final parsing = useProvider(parsingProvider);
 
     return parsing.when(
-        data: (_) => Items(),
-        loading: () => Center(
-              child: SizedBox(
-                child: CircularProgressIndicator(),
-                width: 60,
-                height: 60,
-              ),
-            ),
-        error: (err, stack) => parserException(err as ParserException));
+      data: (_) => Items(),
+      loading: () => Center(
+        child: const SizedBox(
+          child: CircularProgressIndicator(),
+          width: 60,
+          height: 60,
+        ),
+      ),
+      error: (err, stack) =>
+          ParsingError(err as ParserException, enableEdit: true),
+    );
   }
 }
 
