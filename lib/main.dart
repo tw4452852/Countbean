@@ -414,8 +414,10 @@ class MyDrawer extends HookWidget {
                     barrierDismissible: false,
                     builder: (context) {
                       return FutureBuilder<List>(
-                        future: src.files.single.readStream?.join().then(
-                            (data) => BeancountParser().parse(data).value),
+                        future: File(src.files.single.path!)
+                            .readAsString()
+                            .then(
+                                (data) => BeancountParser().parse(data).value),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
                             return AlertDialog(
