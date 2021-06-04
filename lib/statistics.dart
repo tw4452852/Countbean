@@ -26,7 +26,7 @@ class Statistics {
     eventValues.clear();
   }
 
-  static Cost? _computeCosts(List<Posting>? postings) {
+  static Cost? computeCosts(List<Posting>? postings) {
     if (postings == null) return null;
 
     double sum = 0;
@@ -65,7 +65,7 @@ class Statistics {
       final e = items.elementAt(i).content;
 
       if (e is Transaction) {
-        final fillCost = _computeCosts(e.postings);
+        final fillCost = computeCosts(e.postings);
         e.postings?.forEach((p) {
           if (p.account == account) {
             final Cost cost = p.cost ?? fillCost!;
@@ -140,7 +140,7 @@ class Statistics {
                 .fold<Cost>(
               Cost(amount: 0, currency: e.cost.currency),
               (sum, t) {
-                final fillCost = _computeCosts(t.postings);
+                final fillCost = computeCosts(t.postings);
                 t.postings?.forEach((p) {
                   if (p.account == e.account &&
                       (p.cost ?? fillCost)!.currency == e.cost.currency) {

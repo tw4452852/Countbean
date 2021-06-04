@@ -8,7 +8,9 @@ import 'package:path/path.dart' as path;
 import './sheets.dart';
 import './item.dart';
 import './parser/parser.dart';
+import './parser/model.dart';
 import './search.dart';
+import './balances.dart';
 
 Future<List<String>> loadSheets() async {
   final directory = await getApplicationDocumentsDirectory();
@@ -67,7 +69,7 @@ final statisticsAccountsProvider = StateProvider<List<String>>((ref) {
   return [];
 });
 
-final currentDisplayedItemsProvider = Provider<List<Item>?>((ref) {
+final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
   final searchPattern = ref.watch(searchPatternProvider).state;
   final items = ref.watch(currentItemsProvider.state);
 
@@ -84,4 +86,16 @@ final currentDisplayedItemsProvider = Provider<List<Item>?>((ref) {
 final currentStatisticsProvider = Provider<Statistics>((ref) {
   final items = ref.watch(parsingProvider);
   return Statistics()..addItems(items.data?.value?.map((e) => Item(e)));
+});
+
+final currentDisplayAccountBalancingsProvider = Provider<List<Balances>>((ref) {
+  final accounts = ref.watch(statisticsAccountsProvider).state;
+  final items = ref.watch(currentDisplayedItemsProvider);
+  final s = ref.watch(currentStatisticsProvider);
+
+  if (items == null) {
+    return [];
+  }
+
+  return accounts.map((a) => Balances(a, s.balance(a, items))).toList();
 });

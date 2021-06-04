@@ -521,7 +521,7 @@ class Parsing extends HookWidget {
 class Items extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    final showedItems = useProvider(currentDisplayedItemsProvider)!.reversed;
+    final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
     final scrollController = useScrollController();
 
     return WidgetsVisibilityProvider(
@@ -555,10 +555,8 @@ class AccountsStatistics extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final accounts = useProvider(statisticsAccountsProvider);
-    final items = useProvider(currentDisplayedItemsProvider);
+    final balances = useProvider(currentDisplayAccountBalancingsProvider);
     final s = context.read(currentStatisticsProvider);
-
-    if (items == null) return SizedBox.shrink();
 
     return GestureDetector(
       onDoubleTap: () => scrollController.animateTo(
@@ -591,10 +589,11 @@ class AccountsStatistics extends HookWidget {
         subtitle: accounts.state.isEmpty
             ? null
             : WidgetsVisibilityBuilder(
-                buildWhen: (previous, current) => !listEquals(
-                    previous.positionDataList.map((e) => e.data).toList(),
-                    current.positionDataList.map((e) => e.data).toList()),
+                buildWhen: (previous, current) =>
+                    previous.positionDataList.first.data !=
+                    current.positionDataList.first.data,
                 builder: (context, event) {
+                  final items = context.read(currentDisplayedItemsProvider);
                   final positions = event.positionDataList;
                   int endIndex = positions.isNotEmpty
                       ? event.positionDataList.first.data
@@ -603,24 +602,24 @@ class AccountsStatistics extends HookWidget {
                     endIndex = items.length;
                   }
 
-                  final validItems = items.sublist(0, endIndex);
+                  final deductItems = items.sublist(endIndex);
                   return Wrap(
-                    children: accounts.state.map(
-                      (a) {
-                        final balance = s.balance(a, validItems);
+                    children: balances.map(
+                      (b) {
+                        final currencies = b.deduct(deductItems);
                         return Chip(
                           labelPadding: EdgeInsets.only(left: 15),
                           label: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('$a:'),
-                              ...balance
+                              Text('${b.account}:'),
+                              ...currencies
                                   .map((e) => Text(e.toString()))
                                   .toList(),
                             ],
                           ),
                           onDeleted: () {
-                            accounts.state.remove(a);
+                            accounts.state.remove(b.account);
                             accounts.state = List.from(accounts.state);
                           },
                         );
