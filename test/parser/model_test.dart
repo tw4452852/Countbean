@@ -231,7 +231,7 @@ void main() {
       date: DateTime(2020),
       account: 'k',
       padAccount: 'v',
-      cost: () => Cost(amount: 10, currency: 'CNY'),
+      cost: Cost(amount: 10, currency: 'CNY'),
     );
     final String expected = '''2020-01-01 pad k v ;10.00 CNY''';
     expect(pad.toString(), equals(expected));

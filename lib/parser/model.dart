@@ -382,7 +382,7 @@ typedef GetCost = Cost Function();
 class Pad {
   DateTime date;
   String account, padAccount;
-  GetCost? cost;
+  Cost? cost;
 
   Pad({
     required this.date,
@@ -395,7 +395,7 @@ class Pad {
     DateTime? date,
     String? account,
     String? padAccount,
-    GetCost? cost,
+    Cost? cost,
   }) {
     return Pad(
       date: date ?? this.date,
@@ -412,7 +412,7 @@ class Pad {
     buffer.write(' pad $account $padAccount');
     final cost = this.cost;
     if (cost != null) {
-      buffer.write(' ;${cost()}');
+      buffer.write(' ;${cost}');
     }
 
     return buffer.toString();

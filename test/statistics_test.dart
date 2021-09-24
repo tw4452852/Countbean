@@ -465,6 +465,16 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
+        Pad(
+          date: DateTime(2020, 1, 3),
+          account: 'a',
+          padAccount: 'b',
+        ),
+        Balance(
+          date: DateTime(2020, 1, 3),
+          account: 'a',
+          cost: Cost(amount: 5, currency: 'CNY'),
+        ),
       ].map((e) => Item(e)).toList();
       s.addItems(items);
       final removed = items.removeAt(4);
@@ -527,6 +537,16 @@ void main() {
           account: 'a',
           cost: Cost(amount: 20, currency: 'CNY'),
         ),
+        Pad(
+          date: DateTime(2020, 1, 3),
+          account: 'a',
+          padAccount: 'b',
+        ),
+        Balance(
+          date: DateTime(2020, 1, 3),
+          account: 'a',
+          cost: Cost(amount: 30, currency: 'CNY'),
+        ),
       ].map((content) => Item(content)).toList();
       s.addItems(items);
       final removed = items.removeAt(3);
@@ -535,13 +555,13 @@ void main() {
       expect(
           s.balance('a', items),
           equals([
-            Cost(amount: 5, currency: 'CNY'),
+            Cost(amount: 30, currency: 'CNY'),
             Cost(amount: 10, currency: 'USD'),
           ]));
       expect(
           s.balance('b', items),
           equals([
-            Cost(amount: -5, currency: 'CNY'),
+            Cost(amount: -30, currency: 'CNY'),
             Cost(amount: -10, currency: 'USD'),
           ]));
     });
@@ -728,13 +748,75 @@ void main() {
       expect(
           s.balance('a', items),
           equals([
-            Cost(amount: 20, currency: 'CNY'),
+            Cost(amount: 15, currency: 'CNY'),
           ]));
       expect(
           s.balance('b', items),
           equals([
-            Cost(amount: -20, currency: 'CNY'),
+            Cost(amount: -15, currency: 'CNY'),
           ]));
     });
+  });
+
+  test('with pad and add balance later', () {
+    final s = Statistics()..reset();
+    final items = [
+      Transaction(
+        date: DateTime(2020),
+        payee: 'p2',
+        tags: ['t1'],
+        links: ['l1', 'l3'],
+        postings: [
+          Posting(account: 'b', cost: Cost(amount: 10, currency: 'CNY')),
+          Posting(account: 'a'),
+        ],
+      ),
+      Pad(
+        date: DateTime(2020, 1, 3),
+        account: 'a',
+        padAccount: 'b',
+      ),
+      Balance(
+        date: DateTime(2020, 1, 3),
+        account: 'a',
+        cost: Cost(amount: 20, currency: 'CNY'),
+      ),
+    ].map((e) => Item(e)).toList();
+    s.addItems(items);
+
+    expect(
+        s.balance('a', items),
+        equals([
+          Cost(amount: 20, currency: 'CNY'),
+        ]));
+    expect(
+        s.balance('b', items),
+        equals([
+          Cost(amount: -20, currency: 'CNY'),
+        ]));
+
+    final pad = Item(Pad(
+      date: DateTime(2020, 1, 2),
+      account: 'a',
+      padAccount: 'b',
+    ));
+    final balance = Item(Balance(
+      date: DateTime(2020, 1, 2),
+      account: 'a',
+      cost: Cost(amount: 5, currency: 'CNY'),
+    ));
+    items.insertAll(1, [pad, balance]);
+    s.addItems([pad, balance]);
+
+    expect(
+        s.balance('a', items),
+        equals([
+          Cost(amount: 20, currency: 'CNY'),
+        ]));
+    expect(
+        s.balance('b', items),
+        equals([
+          Cost(amount: -20, currency: 'CNY'),
+        ]));
   });
 }

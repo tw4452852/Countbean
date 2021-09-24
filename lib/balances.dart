@@ -28,10 +28,8 @@ class Balances {
       }
 
       if (e is Pad) {
-        final costFn = e.cost;
-        if (costFn != null) {
-          final c = costFn();
-
+        final c = e.cost;
+        if (c != null) {
           ret.update(
             c.currency,
             (v) {

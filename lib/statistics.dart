@@ -75,9 +75,8 @@ class Statistics {
       }
 
       if (e is Pad) {
-        final costFn = e.cost;
-        if (costFn != null) {
-          final c = costFn();
+        final c = e.cost;
+        if (c != null) {
           final i = getSlot(c.currency);
 
           if (e.account == account) ret[i] += c;
@@ -86,6 +85,15 @@ class Statistics {
       }
     }
     return ret;
+  }
+
+  _updatePads(DateTime date, String account, Cost cost) {
+    final p = _pads.firstWhereOrNull(
+      (p) => p.date.isAfter(date) && p.account == account && p.cost != null,
+    );
+    if (p != null) {
+      p.cost = p.cost! - cost;
+    }
   }
 
   addItems(Iterable<Item>? items) {
@@ -108,11 +116,14 @@ class Statistics {
         if (ls != null && ls.isNotEmpty) {
           links.addAll(ls);
         }
+        final fillCost = computeCosts(e.postings);
         e.postings?.forEach((p) {
           accounts.add(p.account);
           if (p.cost != null) {
             currencies.add(p.cost!.currency);
           }
+
+          _updatePads(e.date, p.account, p.cost ?? fillCost!);
         });
         final index =
             _transactions.lastIndexWhere((t) => !t.date.isAfter(e.date)) + 1;
@@ -129,44 +140,48 @@ class Statistics {
       }
 
       if (e is Balance) {
-        final p = _pads.lastWhereOrNull(
+        final pendingPad = _pads.lastWhereOrNull(
           (p) => p.account == e.account && p.cost == null,
         );
-        if (p != null) {
-          final i = _pads.indexOf(p);
-          p.cost = () {
-            final t = _transactions
-                .takeWhile((t) => t.date.isBefore(e.date))
-                .fold<Cost>(
-              Cost(amount: 0, currency: e.cost.currency),
-              (sum, t) {
-                final fillCost = computeCosts(t.postings);
-                t.postings?.forEach((p) {
-                  if (p.account == e.account &&
-                      (p.cost ?? fillCost)!.currency == e.cost.currency) {
-                    sum += p.cost ?? fillCost!;
-                  }
-                });
-                return sum;
-              },
-            );
+        if (pendingPad != null) {
+          final i = _pads.indexOf(pendingPad);
 
-            final p = _pads.sublist(0, i).where((p) {
-              final costFn = p.cost;
-              return costFn != null &&
-                  costFn().currency == e.cost.currency &&
-                  (p.account == e.account || p.padAccount == e.account);
-            }).fold<Cost>(
-              Cost(amount: 0, currency: e.cost.currency),
-              (sum, p) {
-                final cost = p.cost!();
-                p.account == e.account ? sum += cost : sum -= cost;
-                return sum;
-              },
-            );
+          final t = _transactions
+              .takeWhile((t) => t.date.isBefore(e.date))
+              .fold<Cost>(
+            Cost(amount: 0, currency: e.cost.currency),
+            (sum, t) {
+              final fillCost = computeCosts(t.postings);
+              t.postings?.forEach((p) {
+                if (p.account == e.account &&
+                    (p.cost ?? fillCost)!.currency == e.cost.currency) {
+                  sum += p.cost ?? fillCost!;
+                }
+              });
+              return sum;
+            },
+          );
 
-            return e.cost - t - p;
-          };
+          final p = _pads.sublist(0, i).where((p) {
+            final c = p.cost;
+            return c != null &&
+                c.currency == e.cost.currency &&
+                (p.account == e.account || p.padAccount == e.account);
+          }).fold<Cost>(
+            Cost(amount: 0, currency: e.cost.currency),
+            (sum, p) {
+              final cost = p.cost!;
+              p.account == e.account ? sum += cost : sum -= cost;
+              return sum;
+            },
+          );
+
+          final c = e.cost - t - p;
+          pendingPad.cost = c;
+
+          _updatePads(pendingPad.date, pendingPad.account, c);
+          _updatePads(pendingPad.date, pendingPad.padAccount,
+              c.copyWith(amount: 0 - c.amount));
         }
       }
     });
@@ -176,15 +191,31 @@ class Statistics {
     items.forEach((item) {
       final e = item.content;
       if (e is Pad) {
+        final c = e.cost;
+        if (c != null) {
+          _updatePads(e.date, e.padAccount, c);
+          _updatePads(e.date, e.account, c.copyWith(amount: 0 - c.amount));
+        }
         _pads.remove(e);
       }
       if (e is Transaction) {
+        final fillCost = computeCosts(e.postings);
+        e.postings?.forEach((p) {
+          final cost = p.cost ?? fillCost!;
+          _updatePads(
+              e.date, p.account, cost.copyWith(amount: 0 - cost.amount));
+        });
         _transactions.remove(e);
       }
       if (e is Balance) {
-        _pads
-            .lastWhereOrNull((p) => p.account == e.account && p.cost != null)
-            ?.cost = null;
+        final p = _pads.lastWhereOrNull(
+            (p) => p.account == e.account && p.date.isBefore(e.date));
+        if (p != null && p.cost != null) {
+          final c = p.cost!;
+          _updatePads(p.date, p.padAccount, c);
+          _updatePads(p.date, p.account, c.copyWith(amount: 0 - c.amount));
+          p.cost = null;
+        }
       }
     });
   }

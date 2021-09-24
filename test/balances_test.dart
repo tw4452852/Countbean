@@ -38,7 +38,7 @@ void main() {
             date: DateTime(2020),
             account: 'a',
             padAccount: 'b',
-            cost: () => Cost(amount: 20, currency: 'CNY'),
+            cost: Cost(amount: 20, currency: 'CNY'),
           ))
         ]).toList(),
         [
@@ -57,7 +57,7 @@ void main() {
             date: DateTime(2020),
             account: 'b',
             padAccount: 'a',
-            cost: () => Cost(amount: 20, currency: 'CNY'),
+            cost: Cost(amount: 20, currency: 'CNY'),
           ))
         ]).toList(),
         [
@@ -76,7 +76,7 @@ void main() {
             date: DateTime(2020),
             account: 'b',
             padAccount: 'c',
-            cost: () => Cost(amount: 20, currency: 'CNY'),
+            cost: Cost(amount: 20, currency: 'CNY'),
           ))
         ]).toList(),
         [
