@@ -11,8 +11,6 @@ import 'package:package_info/package_info.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:widgets_visibility_provider/widgets_visibility_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:ext_storage/ext_storage.dart';
 import 'package:petitparser/petitparser.dart';
 
 import './parser/widget.dart';
@@ -327,12 +325,8 @@ class MyDrawer extends HookWidget {
                 onTap: () async {
                   String defaultDir;
                   if (Platform.isAndroid) {
-                    final permission = await Permission.storage.request();
-                    if (!permission.isGranted) {
-                      return;
-                    }
                     defaultDir = path.join(
-                      (await ExtStorage.getExternalStorageDirectory())!,
+                      (await getDownloadsDirectory())!.toString(),
                       'cb',
                     );
                   } else {
