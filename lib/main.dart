@@ -326,10 +326,7 @@ class MyDrawer extends HookConsumerWidget {
                 onTap: () async {
                   String defaultDir;
                   if (Platform.isAndroid) {
-                    defaultDir = path.join(
-                      (await getDownloadsDirectory())!.toString(),
-                      'cb',
-                    );
+                    defaultDir = '/sdcard/Download/cb';
                   } else {
                     defaultDir =
                         (await getApplicationDocumentsDirectory()).path;

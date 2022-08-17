@@ -35,7 +35,7 @@ dependencies:
   flutter_typeahead: ^3.0.0-nullsafety.0
   intl: ^0.17.0
   petitparser: ^5.0.0
-  file_picker: ^3.0.0
+  file_picker: ^5.0.1
   path_provider: ^2.0.1
   flutter:
     sdk: flutter
