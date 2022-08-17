@@ -150,20 +150,11 @@ class _TransactionAddWidgetState extends ConsumerState<TransactionAddWidget>
                     child: l == froms ? const Text('From:') : const Text('To:'),
                   ),
                   Expanded(
-                    child: TextFormFieldWithSuggestion(
+                    child: TextWithModal(
                       name: "Account",
-                      goUp: true,
-                      inputDecoration: InputDecoration(
-                        labelText: 'Account',
-                      ),
-                      textCapitalization: TextCapitalization.words,
                       suggestions: accounts,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return "Account is empty";
-                        }
+                      onsave: (v) {
                         l[i][0] = v;
-                        return null;
                       },
                     ),
                   ),

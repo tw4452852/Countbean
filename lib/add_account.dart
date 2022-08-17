@@ -43,37 +43,34 @@ class _AccountAddWidgetState extends ConsumerState<AccountAddWidget>
         ]);
       },
       children: [
-        TextFormFieldWithSuggestion(
-          initialValue: action,
-          name: 'Action',
-          validator: (v) {
-            if (v == null || v.isEmpty) {
-              return "Action is empty";
-            }
-            if (v != "close" && v != "open") {
-              return 'Action must be "open" or "close"';
-            }
-            return null;
-          },
-          suggestions: ["open", "close"],
-          onSave: (value) {
-            action = value;
-          },
-        ),
-        TextFormFieldWithSuggestion(
-          autofocus: true,
-          name: 'Account',
-          validator: (v) {
-            if (v == null || v.isEmpty) {
-              return "Account is empty";
-            }
-            return null;
-          },
-          textCapitalization: TextCapitalization.words,
-          onSave: (value) {
-            account = value;
-          },
-          suggestions: accounts,
+        Row(
+          children: [
+            TextWithModal(
+              name: "Action",
+              suggestions: ["open", "close"],
+              onsave: (v) {
+                action = v;
+              },
+              autofocus: true,
+            ),
+            Expanded(
+              child: TextFormFieldWithSuggestion(
+                autofocus: true,
+                name: 'Account',
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return "Account is empty";
+                  }
+                  return null;
+                },
+                textCapitalization: TextCapitalization.words,
+                onSave: (value) {
+                  account = value;
+                },
+                suggestions: accounts,
+              ),
+            ),
+          ],
         ),
         Chips(
           name: 'Currency',
