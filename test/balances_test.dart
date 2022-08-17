@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import 'package:countbean/statistics.dart';
 import 'package:countbean/parser/model.dart';
 import 'package:countbean/item.dart';
 import 'package:countbean/balances.dart';

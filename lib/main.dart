@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
@@ -410,8 +409,10 @@ class MyDrawer extends HookWidget {
                       return FutureBuilder<List>(
                         future: File(src.files.single.path!)
                             .readAsString()
-                            .then(
-                                (data) => BeancountParser().parse(data).value),
+                            .then((data) => BeancountParserDefinition()
+                                .build()
+                                .parse(data)
+                                .value),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
                             return AlertDialog(

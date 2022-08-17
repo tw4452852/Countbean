@@ -4,7 +4,7 @@ import 'package:countbean/parser/parser.dart';
 void main() {
   group('Beancount parser can go back-and-forth on some records', () {
     test('on a simple transaction', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''
 2019-01-22 * "Payee" ""
   Expenses:A 20.98 USD
@@ -29,13 +29,13 @@ void main() {
         .trim();
 
     test('on a full transaction', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final transaction = bg.parse(fullTransactionRecord).value.first;
       expect(transaction.toString().trim(), fullTransactionRecord);
     });
 
     test('comments are ignored', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''
 2019-01-22 ! "Payee" "Comment" #tag ^link ; every
   meta: "data"                            ; comment
@@ -52,7 +52,7 @@ void main() {
     });
 
     test('on a balance', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''
 2019-01-22 balance Assets:A 0.12 BRL
   meta: "data"
@@ -63,7 +63,7 @@ void main() {
     });
 
     test('on a account action', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''
 2016-01-01 open Income:A BRL
 '''
@@ -73,14 +73,14 @@ void main() {
     });
 
     test('on a option', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''option "k" "v"'''.trim();
       final action = bg.parse(singleRecord).value.first;
       expect(action.toString().trim(), singleRecord);
     });
 
     test('on a commodity', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''
 2020-01-01 commodity CNY
   key: "v"
@@ -91,14 +91,14 @@ void main() {
     });
 
     test('on a event', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''2020-01-01 event "k" ""'''.trim();
       final action = bg.parse(singleRecord).value.first;
       expect(action.toString().trim(), singleRecord);
     });
 
     test('on a pad', () {
-      BeancountParser bg = BeancountParser();
+      final bg = BeancountParserDefinition().build();
       final singleRecord = '''2020-01-01 pad Assets:a Assets:b'''.trim();
       final action = bg.parse(singleRecord).value.first;
       expect(action.toString().trim(), singleRecord);

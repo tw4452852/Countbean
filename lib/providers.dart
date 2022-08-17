@@ -8,7 +8,6 @@ import 'package:path/path.dart' as path;
 import './sheets.dart';
 import './item.dart';
 import './parser/parser.dart';
-import './parser/model.dart';
 import './search.dart';
 import './balances.dart';
 
@@ -47,7 +46,10 @@ final parsingProvider = FutureProvider<List?>((ref) async {
 
   if (currentFile == null) return null;
 
-  return BeancountParser().parse(await currentFile.readAsString()).value;
+  return BeancountParserDefinition()
+      .build()
+      .parse(await currentFile.readAsString())
+      .value;
 });
 
 final currentItemsProvider = StateNotifierProvider<Items>((ref) {
@@ -92,10 +94,6 @@ final currentDisplayAccountBalancingsProvider = Provider<List<Balances>>((ref) {
   final accounts = ref.watch(statisticsAccountsProvider).state;
   final items = ref.watch(currentDisplayedItemsProvider);
   final s = ref.watch(currentStatisticsProvider);
-
-  if (items == null) {
-    return [];
-  }
 
   return accounts.map((a) => Balances(a, s.balance(a, items))).toList();
 });

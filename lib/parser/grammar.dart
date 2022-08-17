@@ -1,16 +1,12 @@
 import 'package:petitparser/petitparser.dart';
 
-class BeancountGrammar extends GrammarParser {
-  BeancountGrammar() : super(const BeancountGrammarDefinition());
-}
-
 class BeancountGrammarDefinition extends GrammarDefinition {
   const BeancountGrammarDefinition();
 
-  Parser start() => ref(value).end();
+  Parser start() => ref0(value).end();
   Parser token(Parser parser) => parser.flatten().trim(anyOf(' \t\r'));
 
-  Parser value() => ref((transaction() |
+  Parser value() => ref0((transaction() |
           balance() |
           accountAction() |
           option() |
@@ -20,31 +16,32 @@ class BeancountGrammarDefinition extends GrammarDefinition {
           fullLineComment())
       .star);
 
-  Parser numberToken() => ref(
+  Parser numberToken() => ref1(
       token,
       char('-').optional() &
           char('0').or(digit().plus()) &
           char('.').seq(digit().plus()).optional());
   Parser stringToken() =>
-      ref(token, char('"') & pattern('^"').star() & char('"'));
-  Parser flagToken() => ref(token, char('*') | char('!') | string('txn'));
-  Parser dateToken() => ref(
+      ref1(token, char('"') & pattern('^"').star() & char('"'));
+  Parser flagToken() => ref1(token, char('*') | char('!') | string('txn'));
+  Parser dateToken() => ref1(
       token,
       digit().times(4) &
           char('-') &
           digit().times(2) &
           char('-') &
           digit().times(2));
-  Parser accountToken() => ref(
+  Parser accountToken() => ref1(
       token,
       accountPreffixPrimitive() &
           (char(':') & tagsCharacterPrimitive().plus()).star());
-  Parser currencyToken() => ref(token, uppercaseCharacterPrimitive().plus());
-  Parser tagToken() => ref(token, char('#') & tagsCharacterPrimitive().plus());
-  Parser linkToken() => ref(token, char('^') & tagsCharacterPrimitive().plus());
+  Parser currencyToken() => ref1(token, uppercaseCharacterPrimitive().plus());
+  Parser tagToken() => ref1(token, char('#') & tagsCharacterPrimitive().plus());
+  Parser linkToken() =>
+      ref1(token, char('^') & tagsCharacterPrimitive().plus());
   Parser singleMetadataToken() =>
-      ref(token, lowercaseCharacterPrimitive().plus()) &
-      ref(token, char(':')) &
+      ref1(token, lowercaseCharacterPrimitive().plus()) &
+      ref1(token, char(':')) &
       stringToken() &
       comment();
   Parser metadataToken() => singleMetadataToken().star();
@@ -85,8 +82,8 @@ class BeancountGrammarDefinition extends GrammarDefinition {
   Parser option() =>
       string('option') & stringToken() & stringToken() & comment();
   Parser fullLineComment() =>
-      ref(token, char(';') & noneOf('\n').star() & whitespace().star());
-  Parser comment() => ref(token, fullLineComment() | whitespace().star());
+      ref1(token, char(';') & noneOf('\n').star() & whitespace().star());
+  Parser comment() => ref1(token, fullLineComment() | whitespace().star());
   Parser commodity() =>
       dateToken() &
       string('commodity') &

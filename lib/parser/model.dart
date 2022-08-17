@@ -412,7 +412,7 @@ class Pad {
     buffer.write(' pad $account $padAccount');
     final cost = this.cost;
     if (cost != null) {
-      buffer.write(' ;${cost}');
+      buffer.write(' ;$cost');
     }
 
     return buffer.toString();
