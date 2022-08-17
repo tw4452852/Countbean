@@ -7,12 +7,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../providers.dart';
 
-class ParsingError extends HookWidget {
+class ParsingError extends HookConsumerWidget {
   final ParserException exception;
   final bool enableEdit;
 
-  ParsingError(this.exception, {Key? key, this.enableEdit = false})
-      : super(key: key);
+  ParsingError(this.exception, {this.enableEdit = false}) : super();
 
   static List<int> getContextRange(String buf, int position) {
     late int beginPos, endPos;
@@ -35,7 +34,7 @@ class ParsingError extends HookWidget {
   }
 
   @override
-  Widget build(context) {
+  Widget build(context, WidgetRef ref) {
     final controller = useTextEditingController();
     final isEditing = useState(false);
     final range = useMemoized(
@@ -70,9 +69,9 @@ class ParsingError extends HookWidget {
               ? IconButton(
                   icon: const Icon(Icons.done),
                   onPressed: () async {
-                    final cur = context.read(currentFileProvider).state;
+                    final cur = ref.read(currentFileProvider);
                     if (cur != null) {
-                      context.read(currentFileProvider).state =
+                      ref.read(currentFileProvider.notifier).state =
                           await File(cur.path).writeAsString(f.buffer
                               .replaceRange(begin, end, controller.text));
                     }

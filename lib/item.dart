@@ -61,7 +61,7 @@ class Items extends StateNotifier<List<Item>> {
   Items(this.read, [List<Item>? initItems]) : super(initItems ?? []);
 
   _updateFile({bool isAppend = false, Iterable<Item>? appendItems}) {
-    final file = read(currentFileProvider).state;
+    final file = read(currentFileProvider);
     if (file == null) {
       return;
     }

@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import './parser/model.dart';
 import './add.dart';
 
-class EventAddWidget extends StatefulWidget {
+class EventAddWidget extends ConsumerStatefulWidget {
   final Function(List) onSave;
 
   @override
@@ -15,7 +15,7 @@ class EventAddWidget extends StatefulWidget {
   _EventAddWidgetState createState() => _EventAddWidgetState();
 }
 
-class _EventAddWidgetState extends State<EventAddWidget>
+class _EventAddWidgetState extends ConsumerState<EventAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
   String? k;
   String v = "";
@@ -27,7 +27,7 @@ class _EventAddWidgetState extends State<EventAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final s = context.read(currentStatisticsProvider);
+    final s = ref.read(currentStatisticsProvider);
     final types = s.eventTypes.toList();
     final values = s.eventValues.toList();
     return form(

@@ -37,10 +37,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends HookWidget {
+class MyHomePage extends HookConsumerWidget {
   @override
-  Widget build(context) {
-    final loading = useProvider(loadingProvider);
+  Widget build(context, ref) {
+    final loading = ref.watch(loadingProvider);
     return loading.when(
         data: (_) => Home(),
         loading: () => Center(
@@ -88,9 +88,9 @@ Future<File?> createFile(context) async {
   return null;
 }
 
-class Startup extends HookWidget {
+class Startup extends HookConsumerWidget {
   @override
-  Widget build(context) {
+  Widget build(context, ref) {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -101,8 +101,8 @@ class Startup extends HookWidget {
               final f = await createFile(context);
 
               if (f != null) {
-                context.read(currentFileProvider).state = f;
-                context.read(sheetsProvider).add(f.path);
+                ref.read(currentFileProvider.notifier).state = f;
+                ref.read(sheetsProvider.notifier).add(f.path);
               }
             },
           ),
@@ -116,9 +116,9 @@ class Startup extends HookWidget {
                 if (filePath == null) return null;
                 final p = path.join(
                     d.path, '${path.basenameWithoutExtension(filePath)}.cb');
-                context.read(currentFileProvider).state =
+                ref.read(currentFileProvider.notifier).state =
                     await File(filePath).copy(p);
-                context.read(sheetsProvider).add(p);
+                ref.read(sheetsProvider.notifier).add(p);
               }
             },
           ),
@@ -128,11 +128,11 @@ class Startup extends HookWidget {
   }
 }
 
-class Home extends HookWidget {
+class Home extends HookConsumerWidget {
   @override
-  Widget build(context) {
-    final currentFile = useProvider(currentFileProvider).state;
-    final parsing = useProvider(parsingProvider);
+  Widget build(context, ref) {
+    final currentFile = ref.watch(currentFileProvider);
+    final parsing = ref.watch(parsingProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -142,19 +142,19 @@ class Home extends HookWidget {
         actions: [
           Consumer(
             builder: (context, watch, child) {
-              final searchPattern = watch(searchPatternProvider);
+              final searchPattern = ref.watch(searchPatternProvider);
               return Row(
                 children: [
-                  if (searchPattern.state.isNotEmpty)
+                  if (searchPattern.isNotEmpty)
                     SizedBox(
                       width: 100,
                       child: Chip(
                         label: Text(
-                          searchPattern.state,
+                          searchPattern,
                           overflow: TextOverflow.ellipsis,
                         ),
                         onDeleted: () {
-                          searchPattern.state = '';
+                          ref.read(searchPatternProvider.notifier).state = '';
                         },
                       ),
                     ),
@@ -163,11 +163,13 @@ class Home extends HookWidget {
                     onPressed: () async {
                       final pattern = await showSearch<String?>(
                         context: context,
-                        delegate: SearchBarViewDelegate(),
-                        query: searchPattern.state,
+                        delegate: SearchBarViewDelegate(
+                            ref.read(currentStatisticsProvider)),
+                        query: searchPattern,
                       );
-                      if (pattern != null && pattern != searchPattern.state) {
-                        searchPattern.state = pattern;
+                      if (pattern != null && pattern != searchPattern) {
+                        ref.read(searchPatternProvider.notifier).state =
+                            pattern;
                       }
                     },
                   ),
@@ -192,8 +194,8 @@ class Home extends HookWidget {
                     ),
                   );
                   if (result != null && result.isNotEmpty) {
-                    context
-                        .read(currentItemsProvider)
+                    ref
+                        .read(currentItemsProvider.notifier)
                         .add(result.map((e) => Item(e)));
                   }
                 },
@@ -204,11 +206,11 @@ class Home extends HookWidget {
   }
 }
 
-class MyDrawer extends HookWidget {
+class MyDrawer extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final file = context.read(currentFileProvider).state;
-    final items = context.read(currentItemsProvider.state);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final file = ref.read(currentFileProvider);
+    final items = ref.read(currentItemsProvider);
     final ctx = useContext();
 
     return Drawer(
@@ -275,8 +277,8 @@ class MyDrawer extends HookWidget {
                     );
                   });
               if (name != null && name.isNotEmpty) {
-                context.read(currentFileProvider).state = await context
-                    .read(sheetsProvider)
+                await ref
+                    .read(sheetsProvider.notifier)
                     .add('${directory.path}/$name.cb');
                 Navigator.pop(context);
               }
@@ -308,10 +310,10 @@ class MyDrawer extends HookWidget {
                   },
                 );
                 if (confirm != null && confirm == true) {
-                  final s = context.read(sheetsProvider);
+                  final s = ref.read(sheetsProvider.notifier);
                   s.del(file.path);
                   final first = s.first;
-                  context.read(currentFileProvider).state =
+                  ref.read(currentFileProvider.notifier).state =
                       first == null ? null : File(first);
                   Navigator.pop(context);
                 }
@@ -451,8 +453,8 @@ class MyDrawer extends HookWidget {
                   );
 
                   if (result != null && result.isNotEmpty) {
-                    context
-                        .read(currentItemsProvider)
+                    ref
+                        .read(currentItemsProvider.notifier)
                         .add(result.map((e) => Item(e)));
 
                     Navigator.pop(context);
@@ -474,13 +476,13 @@ class MyDrawer extends HookWidget {
           ),
           Expanded(
             child: ListView(
-              children: context
-                  .read(sheetsProvider.state)
+              children: ref
+                  .read(sheetsProvider)
                   .map((e) => ListTile(
                         title: Text(path.basenameWithoutExtension(e)),
                         onTap: () async {
-                          context.read(currentFileProvider).state =
-                              await context.read(sheetsProvider).open(e);
+                          ref.read(currentFileProvider.notifier).state =
+                              await ref.read(sheetsProvider.notifier).open(e);
                           Navigator.pop(context);
                         },
                       ))
@@ -493,10 +495,10 @@ class MyDrawer extends HookWidget {
   }
 }
 
-class Parsing extends HookWidget {
+class Parsing extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final parsing = useProvider(parsingProvider);
+  Widget build(BuildContext context, ref) {
+    final parsing = ref.watch(parsingProvider);
 
     return parsing.when(
       data: (_) => Items(),
@@ -513,10 +515,10 @@ class Parsing extends HookWidget {
   }
 }
 
-class Items extends HookWidget {
+class Items extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final showedItems = useProvider(currentDisplayedItemsProvider).reversed;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showedItems = ref.watch(currentDisplayedItemsProvider).reversed;
     final scrollController = useScrollController();
 
     return WidgetsVisibilityProvider(
@@ -544,14 +546,14 @@ class Items extends HookWidget {
   }
 }
 
-class AccountsStatistics extends HookWidget {
+class AccountsStatistics extends HookConsumerWidget {
   final ScrollController scrollController;
   AccountsStatistics(this.scrollController, {Key? key}) : super(key: key);
   @override
-  Widget build(BuildContext context) {
-    final accounts = useProvider(statisticsAccountsProvider);
-    final balances = useProvider(currentDisplayAccountBalancingsProvider);
-    final s = context.read(currentStatisticsProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(statisticsAccountsProvider);
+    final balances = ref.watch(currentDisplayAccountBalancingsProvider);
+    final s = ref.read(currentStatisticsProvider);
 
     return GestureDetector(
       onDoubleTap: () => scrollController.animateTo(
@@ -575,20 +577,21 @@ class AccountsStatistics extends HookWidget {
                       ))
                   .toList(),
             );
-            if (v != null && v.isNotEmpty && !accounts.state.contains(v)) {
-              accounts.state.add(v);
-              accounts.state = List.from(accounts.state);
+            if (v != null && v.isNotEmpty && !accounts.contains(v)) {
+              accounts.add(v);
+              ref.read(statisticsAccountsProvider.notifier).state =
+                  List.from(accounts);
             }
           },
         ),
-        subtitle: accounts.state.isEmpty
+        subtitle: accounts.isEmpty
             ? null
             : WidgetsVisibilityBuilder(
                 buildWhen: (previous, current) =>
                     previous.positionDataList.first.data !=
                     current.positionDataList.first.data,
                 builder: (context, event) {
-                  final items = context.read(currentDisplayedItemsProvider);
+                  final items = ref.read(currentDisplayedItemsProvider);
                   final positions = event.positionDataList;
                   int endIndex = positions.isNotEmpty
                       ? event.positionDataList.first.data
@@ -614,8 +617,10 @@ class AccountsStatistics extends HookWidget {
                             ],
                           ),
                           onDeleted: () {
-                            accounts.state.remove(b.account);
-                            accounts.state = List.from(accounts.state);
+                            accounts.remove(b.account);
+                            ref
+                                .read(statisticsAccountsProvider.notifier)
+                                .state = List.from(accounts);
                           },
                         );
                       },
@@ -628,15 +633,15 @@ class AccountsStatistics extends HookWidget {
   }
 }
 
-final _currentItem = ScopedProvider<Item>(null);
+final _currentItem = Provider<Item>((ref) => Item("uninitialized"));
 
-class ItemWidget extends HookWidget {
+class ItemWidget extends HookConsumerWidget {
   const ItemWidget({Key? key}) : super(key: key);
 
   static const _maxLines = 3;
   @override
-  Widget build(BuildContext context) {
-    final item = useProvider(_currentItem);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = ref.watch(_currentItem);
     final lines = LineSplitter.split(item.toString()).toList();
     final content = lines.sublist(1).join("\n");
     final needCollapse = lines.length > _maxLines;
@@ -680,7 +685,7 @@ class ItemWidget extends HookWidget {
               ),
       ),
       onDismissed: (direction) {
-        final items = context.read(currentItemsProvider);
+        final items = ref.read(currentItemsProvider.notifier);
         items.del(item);
 
         ScaffoldMessenger.of(context)

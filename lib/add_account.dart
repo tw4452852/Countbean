@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import './add.dart';
 import './parser/model.dart';
 
-class AccountAddWidget extends StatefulWidget {
+class AccountAddWidget extends ConsumerStatefulWidget {
   final Function(List) onSave;
 
   @override
@@ -15,7 +15,7 @@ class AccountAddWidget extends StatefulWidget {
   _AccountAddWidgetState createState() => _AccountAddWidgetState();
 }
 
-class _AccountAddWidgetState extends State<AccountAddWidget>
+class _AccountAddWidgetState extends ConsumerState<AccountAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
   String action = "open";
   String? account;
@@ -28,7 +28,7 @@ class _AccountAddWidgetState extends State<AccountAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final s = context.read(currentStatisticsProvider);
+    final s = ref.read(currentStatisticsProvider);
     final currencies = s.currencies.toList();
     final accounts = s.accounts.toList();
     return form(

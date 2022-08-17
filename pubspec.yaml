@@ -29,8 +29,7 @@ environment:
 dependencies:
   collection: ^1.15.0
   widgets_visibility_provider: ^3.0.1
-  hooks_riverpod: ^0.13.1
-  flutter_hooks: ^0.16.0
+  hooks_riverpod: ^1.0.1
   package_info: ^2.0.0
   expandable: ^5.0.1
   flutter_typeahead: ^3.0.0-nullsafety.0

@@ -1,13 +1,16 @@
-import 'package:countbean/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import './parser/model.dart';
 import './item.dart';
+import './statistics.dart';
 
 typedef Filter = bool Function(Item item);
 
 class SearchBarViewDelegate extends SearchDelegate<String?> {
+  final Statistics statistics;
+
+  SearchBarViewDelegate(this.statistics);
+
   static List<Filter> generateFilters(String s) {
     final List<Filter> ret = [];
 
@@ -62,7 +65,6 @@ class SearchBarViewDelegate extends SearchDelegate<String?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final statistics = context.read(currentStatisticsProvider);
     final Set<String> allSuggestions = {
       "DateFrom:",
       "DateTo:",

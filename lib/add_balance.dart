@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import './add.dart';
 import './parser/model.dart';
 
-class BalanceAddWidget extends StatefulWidget {
+class BalanceAddWidget extends ConsumerStatefulWidget {
   final Function(List) onSave;
 
   @override
@@ -16,7 +16,7 @@ class BalanceAddWidget extends StatefulWidget {
   _BalanceAddWidgetState createState() => _BalanceAddWidgetState();
 }
 
-class _BalanceAddWidgetState extends State<BalanceAddWidget>
+class _BalanceAddWidgetState extends ConsumerState<BalanceAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
   String? account, currency;
   double? amount;
@@ -30,7 +30,7 @@ class _BalanceAddWidgetState extends State<BalanceAddWidget>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final s = context.read(currentStatisticsProvider);
+    final s = ref.read(currentStatisticsProvider);
     final currencies = s.currencies.toList();
     final accounts = s.accounts.toList();
     return form(

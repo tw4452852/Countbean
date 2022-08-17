@@ -7,7 +7,7 @@ import './parser/model.dart';
 import './add.dart';
 import './providers.dart';
 
-class TransactionAddWidget extends StatefulWidget {
+class TransactionAddWidget extends ConsumerStatefulWidget {
   final Function(List) onSave;
 
   @override
@@ -17,7 +17,7 @@ class TransactionAddWidget extends StatefulWidget {
   _TransactionAddWidgetState createState() => _TransactionAddWidgetState();
 }
 
-class _TransactionAddWidgetState extends State<TransactionAddWidget>
+class _TransactionAddWidgetState extends ConsumerState<TransactionAddWidget>
     with FormWithDate, AutomaticKeepAliveClientMixin {
   String? desc, payee, currency;
   List<List> froms = [[]..length = 2];
@@ -36,7 +36,7 @@ class _TransactionAddWidgetState extends State<TransactionAddWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final s = context.read(currentStatisticsProvider);
+    final s = ref.read(currentStatisticsProvider);
     final payees = s.payees.toList();
     final accounts = s.accounts.toList();
     final tags = s.tags;

@@ -24,10 +24,10 @@ Future<List<String>> loadSheets() async {
 
 final loadingProvider = FutureProvider<List<String>>((ref) => loadSheets());
 
-final sheetsProvider = StateNotifierProvider<Sheets>((ref) {
+final sheetsProvider = StateNotifierProvider<Sheets, List<String>>((ref) {
   final loading = ref.watch(loadingProvider);
 
-  final data = loading.whenData((value) => Sheets(value)).data;
+  final data = loading.whenData((value) => Sheets(value)).asData;
 
   if (data == null) return Sheets();
   return data.value;
@@ -35,14 +35,14 @@ final sheetsProvider = StateNotifierProvider<Sheets>((ref) {
 
 final currentFileProvider = StateProvider<File?>((ref) {
   final loading = ref.watch(loadingProvider);
-  if (loading.data == null) return null;
+  if (loading.asData == null) return null;
 
-  final sheets = ref.read(sheetsProvider);
+  final sheets = ref.read(sheetsProvider.notifier);
   return sheets.isEmpty ? null : File(sheets.first!);
 });
 
 final parsingProvider = FutureProvider<List?>((ref) async {
-  final currentFile = ref.watch(currentFileProvider).state;
+  final currentFile = ref.watch(currentFileProvider);
 
   if (currentFile == null) return null;
 
@@ -52,10 +52,10 @@ final parsingProvider = FutureProvider<List?>((ref) async {
       .value;
 });
 
-final currentItemsProvider = StateNotifierProvider<Items>((ref) {
+final currentItemsProvider = StateNotifierProvider<Items, List<Item>>((ref) {
   final items = ref.watch(parsingProvider);
 
-  final data = items.data;
+  final data = items.asData;
   if (data == null) return Items(ref.read);
 
   return Items(ref.read, data.value?.map((e) => Item(e)).toList());
@@ -72,8 +72,8 @@ final statisticsAccountsProvider = StateProvider<List<String>>((ref) {
 });
 
 final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
-  final searchPattern = ref.watch(searchPatternProvider).state;
-  final items = ref.watch(currentItemsProvider.state);
+  final searchPattern = ref.watch(searchPatternProvider);
+  final items = ref.watch(currentItemsProvider);
 
   final filters = SearchBarViewDelegate.generateFilters(searchPattern);
   return items.where((element) {
@@ -87,11 +87,11 @@ final currentDisplayedItemsProvider = Provider<List<Item>>((ref) {
 
 final currentStatisticsProvider = Provider<Statistics>((ref) {
   final items = ref.watch(parsingProvider);
-  return Statistics()..addItems(items.data?.value?.map((e) => Item(e)));
+  return Statistics()..addItems(items.asData?.value?.map((e) => Item(e)));
 });
 
 final currentDisplayAccountBalancingsProvider = Provider<List<Balances>>((ref) {
-  final accounts = ref.watch(statisticsAccountsProvider).state;
+  final accounts = ref.watch(statisticsAccountsProvider);
   final items = ref.watch(currentDisplayedItemsProvider);
   final s = ref.watch(currentStatisticsProvider);
 
