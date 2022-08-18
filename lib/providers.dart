@@ -12,7 +12,7 @@ import './search.dart';
 import './balances.dart';
 
 Future<List<String>> loadSheets() async {
-  final directory = await getApplicationDocumentsDirectory();
+  final directory = (await getExternalStorageDirectory())!;
 
   List<File> l = [];
   directory.listSync().forEach((e) {

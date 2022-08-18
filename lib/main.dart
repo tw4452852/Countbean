@@ -55,7 +55,7 @@ class MyHomePage extends HookConsumerWidget {
 }
 
 Future<File?> createFile(context) async {
-  final directory = await getApplicationDocumentsDirectory();
+  final directory = (await getExternalStorageDirectory())!;
   final name = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -110,7 +110,7 @@ class Startup extends HookConsumerWidget {
             child: const Text('Import from file'),
             onPressed: () async {
               final f = await FilePicker.platform.pickFiles();
-              final d = await getApplicationDocumentsDirectory();
+              final d = (await getExternalStorageDirectory())!;
               if (f != null) {
                 final filePath = f.files.first.path;
                 if (filePath == null) return null;
@@ -249,7 +249,7 @@ class MyDrawer extends HookConsumerWidget {
             leading: const Icon(Icons.add),
             title: const Text('New'),
             onTap: () async {
-              final directory = await getApplicationDocumentsDirectory();
+              final directory = (await getExternalStorageDirectory())!;
               final name = await showDialog<String>(
                   context: context,
                   builder: (context) {
@@ -326,7 +326,7 @@ class MyDrawer extends HookConsumerWidget {
                 onTap: () async {
                   String defaultDir;
                   if (Platform.isAndroid) {
-                    defaultDir = '/sdcard/Download/cb';
+                    defaultDir = (await getExternalStorageDirectory())!.path;
                   } else {
                     defaultDir =
                         (await getApplicationDocumentsDirectory()).path;

@@ -16,7 +16,7 @@ class Sheets extends StateNotifier<List<String>> {
       path,
       ...state,
     ];
-    return f.create();
+    return f.create(recursive: true);
   }
 
   bool del(String path) {
