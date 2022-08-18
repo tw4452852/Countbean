@@ -266,7 +266,8 @@ class TextFormFieldWithSuggestion extends HookWidget {
         final suggestions = this.suggestions;
         return suggestions == null
             ? Iterable.empty()
-            : suggestions.where((e) => e.contains(pattern));
+            : suggestions
+                .where((e) => e.toLowerCase().contains(pattern.toLowerCase()));
       },
       onSuggestionSelected: (suggestion) {
         texteditingController.text = suggestion!;
