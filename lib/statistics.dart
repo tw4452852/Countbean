@@ -5,13 +5,13 @@ import './item.dart';
 class Statistics {
   List<Transaction> _transactions = [];
   List<Pad> _pads = [];
-  Set<String> accounts = {};
-  Set<String> payees = {};
-  Set<String> currencies = {};
-  Set<String> links = {};
-  Set<String> tags = {};
-  Set<String> eventTypes = {};
-  Set<String> eventValues = {};
+  List<String> accounts = [];
+  List<String> payees = [];
+  List<String> currencies = [];
+  List<String> links = [];
+  List<String> tags = [];
+  List<String> eventTypes = [];
+  List<String> eventValues = [];
 
   reset() {
     _transactions.clear();
@@ -100,7 +100,8 @@ class Statistics {
     items?.forEach((item) {
       final e = item.content;
       if (e is AccountAction) {
-        accounts.add(e.account);
+        accounts.remove(e.account);
+        accounts.insert(0, e.account);
         e.currencies?.forEach((e) => currencies.add(e));
       }
       if (e is Transaction) {
@@ -108,19 +109,24 @@ class Statistics {
         final ls = e.links;
         final payee = e.payee;
         if (payee != null) {
-          payees.add(payee);
+          payees.remove(payee);
+          payees.insert(0, payee);
         }
         if (ts != null && ts.isNotEmpty) {
-          tags.addAll(ts);
+          tags.removeWhere((e) => ts.contains(e));
+          tags.insertAll(0, ts);
         }
         if (ls != null && ls.isNotEmpty) {
-          links.addAll(ls);
+          links.removeWhere((e) => ls.contains(e));
+          links.insertAll(0, ls);
         }
         final fillCost = computeCosts(e.postings);
         e.postings?.forEach((p) {
-          accounts.add(p.account);
+          accounts.remove(p.account);
+          accounts.insert(0, p.account);
           if (p.cost != null) {
-            currencies.add(p.cost!.currency);
+            currencies.remove(p.cost!.currency);
+            currencies.insert(0, p.cost!.currency);
           }
 
           _updatePads(e.date, p.account, p.cost ?? fillCost!);
@@ -130,8 +136,10 @@ class Statistics {
         _transactions.insert(index, e);
       }
       if (e is Event) {
-        eventTypes.add(e.key);
-        eventValues.add(e.value);
+        eventTypes.remove(e.key);
+        eventTypes.insert(0, e.key);
+        eventValues.remove(e.value);
+        eventValues.insert(0, e.value);
       }
 
       if (e is Pad) {

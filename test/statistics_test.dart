@@ -21,8 +21,8 @@ void main() {
           value: "vv",
         ),
       ].map((e) => Item(e)));
-      expect(s.eventTypes, equals({'k', 'kk'}));
-      expect(s.eventValues, equals({'v', 'vv'}));
+      expect(s.eventTypes, equals(['kk', 'k']));
+      expect(s.eventValues, equals(['vv', 'v']));
     });
 
     test('AccountActions', () {
@@ -40,8 +40,8 @@ void main() {
           account: "a",
         ),
       ].map((e) => Item(e)));
-      expect(s.accounts, equals({'a'}));
-      expect(s.currencies, equals({'c'}));
+      expect(s.accounts, equals(['a']));
+      expect(s.currencies, equals(['c']));
     });
 
     test('Transactions', () {
@@ -69,11 +69,11 @@ void main() {
         ),
       ].map((e) => Item(e)));
 
-      expect(s.accounts, equals({'a', 'b'}));
-      expect(s.tags, equals({'t1', 't2'}));
-      expect(s.links, equals({'l1', 'l2', 'l3'}));
-      expect(s.payees, equals({'p1', 'p2'}));
-      expect(s.currencies, equals({'CNY'}));
+      expect(s.accounts, equals(['a', 'b']));
+      expect(s.tags, equals(['t1', 't2']));
+      expect(s.links, equals(['l1', 'l3', 'l2']));
+      expect(s.payees, equals(['p2', 'p1']));
+      expect(s.currencies, equals(['CNY']));
     });
 
     test('reset', () {
