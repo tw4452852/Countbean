@@ -39,8 +39,14 @@ void main() {
           action: "close",
           account: "a",
         ),
+        AccountAction(
+          date: DateTime(2020),
+          action: "open",
+          account: "b",
+          currencies: ['c'],
+        ),
       ].map((e) => Item(e)));
-      expect(s.accounts, equals(['a']));
+      expect(s.accounts, equals(['b', 'a']));
       expect(s.currencies, equals(['c']));
     });
 

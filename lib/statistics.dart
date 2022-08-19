@@ -102,7 +102,10 @@ class Statistics {
       if (e is AccountAction) {
         accounts.remove(e.account);
         accounts.insert(0, e.account);
-        e.currencies?.forEach((e) => currencies.add(e));
+        e.currencies?.forEach((e) {
+          currencies.remove(e);
+          currencies.insert(0, e);
+        });
       }
       if (e is Transaction) {
         final ts = e.tags;
