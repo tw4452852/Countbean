@@ -51,7 +51,6 @@ class _AccountAddWidgetState extends ConsumerState<AccountAddWidget>
               onsave: (v) {
                 action = v;
               },
-              autofocus: true,
             ),
             Expanded(
               child: TextFormFieldWithSuggestion(

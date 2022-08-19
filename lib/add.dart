@@ -382,48 +382,39 @@ class TextWithModal extends HookWidget {
   final String name;
   final List<String> suggestions;
   final OnSave onsave;
-  final bool autofocus;
 
   TextWithModal({
     Key? key,
     required this.name,
     required this.onsave,
     this.suggestions = const [],
-    this.autofocus = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final result = useState<String>('');
-    final show = () async {
-      final value = await showModalBottomSheet<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return ListView.builder(
-              itemCount: suggestions.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text("${suggestions[index]}"),
-                  onTap: () => Navigator.of(context).pop(suggestions[index]),
-                );
-              });
-        },
-      );
-      if (value != null && value != result.value) {
-        result.value = value;
-        onsave(value);
-        FocusScope.of(context).nextFocus();
-      }
-    };
 
     return TextButton(
-      autofocus: autofocus,
-      onFocusChange: (enter) {
-        if (enter) {
-          show();
+      onPressed: () async {
+        final value = await showModalBottomSheet<String>(
+          context: context,
+          builder: (BuildContext context) {
+            return ListView.builder(
+                itemCount: suggestions.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    title: Text("${suggestions[index]}"),
+                    onTap: () => Navigator.of(context).pop(suggestions[index]),
+                  );
+                });
+          },
+        );
+        if (value != null && value != result.value) {
+          result.value = value;
+          onsave(value);
+          FocusScope.of(context).nextFocus();
         }
       },
-      onPressed: show,
       child: result.value.isEmpty ? Text('<$name>') : Text('${result.value}'),
     );
   }
