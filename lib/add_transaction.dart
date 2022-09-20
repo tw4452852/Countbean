@@ -126,20 +126,6 @@ class _TransactionAddWidgetState extends ConsumerState<TransactionAddWidget>
               desc = v;
             },
           ),
-          TextFormFieldWithSuggestion(
-            name: 'Currency',
-            initialValue: currencies.isEmpty ? null : currencies.first,
-            validator: (v) {
-              if (v == null || v.isEmpty) {
-                return "Currency is empty";
-              }
-              return null;
-            },
-            suggestions: currencies,
-            onSave: (v) {
-              currency = v.toUpperCase();
-            },
-          ),
           SizedBox(height: 10),
           for (var l in [froms, tos]) ...[
             for (var i = 0; i < l.length; i++)
@@ -214,6 +200,20 @@ class _TransactionAddWidgetState extends ConsumerState<TransactionAddWidget>
               ),
             SizedBox(height: 20),
           ],
+          TextFormFieldWithSuggestion(
+            name: 'Currency',
+            initialValue: currencies.isEmpty ? null : currencies.first,
+            validator: (v) {
+              if (v == null || v.isEmpty) {
+                return "Currency is empty";
+              }
+              return null;
+            },
+            suggestions: currencies,
+            onSave: (v) {
+              currency = v.toUpperCase();
+            },
+          ),
           SizedBox(height: 10),
           Chips(
             name: 'Tag',
