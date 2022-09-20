@@ -393,9 +393,12 @@ class TextWithModal extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final result = useState<String>('');
+    final focusNode = useFocusNode();
 
     return TextButton(
+      focusNode: focusNode,
       onPressed: () async {
+        focusNode.requestFocus();
         final value = await showModalBottomSheet<String>(
           context: context,
           builder: (BuildContext context) {
